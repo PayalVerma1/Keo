@@ -24,7 +24,7 @@ model Service{
   id           String       @id @default(uuid())
   name         String  
   description  String? 
-  ownerID      String
+  ownerID      String       
   owner        user         @relation(fields:[ownerID],references:[id])
   metrics      Metrics[]
   logs         Logs[]
