@@ -33,3 +33,4 @@ res.status(500).json({
 })
 }
 })
+export default router;

@@ -38,3 +38,4 @@ router.get("/services/:id/metrics",async(req,res)=>{
     });
     res.json(metrics);
 });
+export default router;
