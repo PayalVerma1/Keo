@@ -1,29 +1,19 @@
-import { Express, Router } from "express";
-import { prisma } from "../src/config/prisma.ts";
-const router = Router()
+import { Router } from "express";
+import {
+  createLog,
+  getLogs,
+} from "./logs.controller.ts";
 
-router.post("/logs", async (req, res) => {
-  try {
-    const { level, message, serviceId } = req.body;
+const router = Router();
 
-    const log = await prisma.logs.create({
-      data: {
-        level,
-        message,
-        serviceId,
-      },
-    });
+router.post(
+  "/logs",
+  createLog
+);
 
-    res.status(201).json({
-      success: true,
-      log,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to create log",
-    });
-  }
-});
+router.get(
+  "/logs/:serviceId",
+  getLogs
+);
 
 export default router;

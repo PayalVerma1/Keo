@@ -13,4 +13,8 @@ declare module "jsonwebtoken" {
     secretOrPrivateKey: string,
     options?: SignOptions,
   ): string;
+
+    export function verify(token: string, arg1: string) {
+        throw new Error("Function not implemented.");
+    }
 }
