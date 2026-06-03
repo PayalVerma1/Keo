@@ -1,12 +1,7 @@
-import express from "express"
+import { app } from "./app.ts";
 
-const app = express()
-app.use(express.json())
+const port = process.env.PORT || 3000;
 
-app.get("/",(req,res)=>{
-    res.send("Hello from backend")
-})
-
-app.listen(3000,()=>{
-    console.log("Server is running at port 3000")
-})
+app.listen(port, () => {
+  console.log(`Server is running at port ${port}`);
+});
