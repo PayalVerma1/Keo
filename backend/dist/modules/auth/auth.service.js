@@ -2,6 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../config/prisma.js";
 export const register = async (data) => {
+    if (!data?.name || !data?.email || !data?.password) {
+        throw new Error("name, email and password are required");
+    }
     const existingUser = await prisma.user.findUnique({
         where: {
             email: data.email,
@@ -21,6 +24,9 @@ export const register = async (data) => {
     return user;
 };
 export const login = async (data) => {
+    if (!data?.email || !data?.password) {
+        throw new Error("email and password are required");
+    }
     const user = await prisma.user.findUnique({
         where: {
             email: data.email,

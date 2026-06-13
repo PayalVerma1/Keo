@@ -10,6 +10,11 @@ export const register = async (
     password: string;
   }
 ) => {
+  if (!data?.name || !data?.email || !data?.password) {
+    throw new Error(
+      "name, email and password are required"
+    );
+  }
 
   const existingUser =
     await prisma.user.findUnique({
@@ -48,6 +53,11 @@ export const login = async (
     password: string;
   }
 ) => {
+  if (!data?.email || !data?.password) {
+    throw new Error(
+      "email and password are required"
+    );
+  }
 
   const user =
     await prisma.user.findUnique({
