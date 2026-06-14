@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import * as deploymentService from "./deployment.service.ts";
+import {
+  emitToService,
+} from "../websocket/socket.server.ts";
+import {
+  SOCKET_EVENTS,
+} from "../websocket/socket.events.ts";
 
 export const createDeployment = async (
   req: Request,
@@ -10,6 +16,12 @@ export const createDeployment = async (
       await deploymentService.createDeployment(
         req.body
       );
+
+    emitToService(
+      deployment.serviceId,
+      SOCKET_EVENTS.DEPLOYMENT_CREATED,
+      deployment
+    );
 
     res.status(201).json({
       success: true,

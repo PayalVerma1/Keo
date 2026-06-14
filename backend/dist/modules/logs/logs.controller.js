@@ -1,7 +1,10 @@
 import * as logsService from "./logs.service.js";
+import { emitToService, } from "../websocket/socket.server.js";
+import { SOCKET_EVENTS, } from "../websocket/socket.events.js";
 export const createLog = async (req, res) => {
     try {
         const log = await logsService.createLog(req.body);
+        emitToService(log.serviceId, SOCKET_EVENTS.LOG_CREATED, log);
         res.status(201).json({
             success: true,
             log,

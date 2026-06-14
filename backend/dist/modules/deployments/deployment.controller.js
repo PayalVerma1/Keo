@@ -1,7 +1,10 @@
 import * as deploymentService from "./deployment.service.js";
+import { emitToService, } from "../websocket/socket.server.js";
+import { SOCKET_EVENTS, } from "../websocket/socket.events.js";
 export const createDeployment = async (req, res) => {
     try {
         const deployment = await deploymentService.createDeployment(req.body);
+        emitToService(deployment.serviceId, SOCKET_EVENTS.DEPLOYMENT_CREATED, deployment);
         res.status(201).json({
             success: true,
             deployment,

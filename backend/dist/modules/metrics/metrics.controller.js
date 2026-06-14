@@ -1,7 +1,10 @@
 import * as metricsService from "./metrics.service.js";
+import { emitToService, } from "../websocket/socket.server.js";
+import { SOCKET_EVENTS, } from "../websocket/socket.events.js";
 export const createMetric = async (req, res) => {
     try {
         const metric = await metricsService.createMetric(req.body);
+        emitToService(metric.serviceId, SOCKET_EVENTS.METRIC_CREATED, metric);
         res.status(201).json({
             message: "metrics created",
             metric,

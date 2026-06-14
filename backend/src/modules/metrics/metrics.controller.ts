@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import * as metricsService from "./metrics.service.ts";
+import {
+  emitToService,
+} from "../websocket/socket.server.ts";
+import {
+  SOCKET_EVENTS,
+} from "../websocket/socket.events.ts";
 
 export const createMetric = async (
   req: Request,
@@ -11,6 +17,12 @@ export const createMetric = async (
       await metricsService.createMetric(
         req.body
       );
+
+    emitToService(
+      metric.serviceId,
+      SOCKET_EVENTS.METRIC_CREATED,
+      metric
+    );
 
     res.status(201).json({
       message: "metrics created",

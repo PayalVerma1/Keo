@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import * as logsService from "./logs.service.ts";
+import {
+  emitToService,
+} from "../websocket/socket.server.ts";
+import {
+  SOCKET_EVENTS,
+} from "../websocket/socket.events.ts";
 
 export const createLog = async (
   req: Request,
@@ -10,6 +16,12 @@ export const createLog = async (
       await logsService.createLog(
         req.body
       );
+
+    emitToService(
+      log.serviceId,
+      SOCKET_EVENTS.LOG_CREATED,
+      log
+    );
 
     res.status(201).json({
       success: true,
