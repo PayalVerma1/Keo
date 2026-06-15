@@ -1,5 +1,5 @@
 import {createClient} from 'redis';
-const client = createClient({
+export const client = createClient({
     url:process.env.REDIS_CLIENT,
 });
 client.on("error", (err)=>{

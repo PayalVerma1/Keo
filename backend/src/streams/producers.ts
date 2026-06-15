@@ -1,4 +1,4 @@
-import { connectRedis } from "../config/redis.ts";
+import { client } from "../config/redis.ts";
 import {STREAMS} from "./redis-streams.ts";
 
 type StreamPayLoad = Record<string,unknown>;
@@ -7,7 +7,7 @@ const addToStream = async(
     stream:string,
     payload:StreamPayLoad
 )=>{
-    return connectRedis.sendCommand([
+    return client.sendCommand([
         "XADD",
         stream,
         "MAXLEN",
