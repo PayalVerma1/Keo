@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import * as metricsService from "./metrics.service.ts";
-import {
-  emitToService,
-} from "../websocket/socket.server.ts";
-import {
-  SOCKET_EVENTS,
-} from "../websocket/socket.events.ts";
+import { publishMetric } from "../../streams/producers.ts";
 
 export const createMetric = async (
   req: Request,
@@ -13,20 +8,11 @@ export const createMetric = async (
 ) => {
   try {
 
-    const metric =
-      await metricsService.createMetric(
-        req.body
-      );
+   await publishMetric(req.body)
 
-    emitToService(
-      metric.serviceId,
-      SOCKET_EVENTS.METRIC_CREATED,
-      metric
-    );
-
-    res.status(201).json({
+    res.status(202).json({
+      success:true,
       message: "metrics created",
-      metric,
     });
 
   } catch (error: any) {

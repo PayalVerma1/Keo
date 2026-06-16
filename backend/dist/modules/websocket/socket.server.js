@@ -14,8 +14,8 @@ export const initSocketServer = (server) => {
             if (!serviceId) {
                 return;
             }
-            socket.join(getServiceRoom(serviceId));
-            socket.emit("service:joined", { serviceId });
+            socket.join(getServiceRoom(serviceId)); //user joins the room
+            socket.emit("service:joined", { serviceId }); //
         });
         socket.on(SOCKET_EVENTS.LEAVE_SERVICE, (serviceId) => {
             if (!serviceId) {

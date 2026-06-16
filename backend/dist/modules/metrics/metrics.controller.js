@@ -1,13 +1,11 @@
 import * as metricsService from "./metrics.service.js";
-import { emitToService, } from "../websocket/socket.server.js";
-import { SOCKET_EVENTS, } from "../websocket/socket.events.js";
+import { publishMetric } from "../../streams/producers.js";
 export const createMetric = async (req, res) => {
     try {
-        const metric = await metricsService.createMetric(req.body);
-        emitToService(metric.serviceId, SOCKET_EVENTS.METRIC_CREATED, metric);
-        res.status(201).json({
+        await publishMetric(req.body);
+        res.status(202).json({
+            success: true,
             message: "metrics created",
-            metric,
         });
     }
     catch (error) {

@@ -18,10 +18,10 @@ const addToStream = async(
         JSON.stringify(payload),
     ])
 };
-export const Metric = async(payload:StreamPayLoad)=>{
+export const publishMetric = async(payload:StreamPayLoad)=>{
     return addToStream(STREAMS.METRICS,payload);
 };
-export const LOG = async(payload:StreamPayLoad)=>{
+export const publishLog = async(payload:StreamPayLoad)=>{
     return addToStream(STREAMS.LOGS, payload);
 };
 
