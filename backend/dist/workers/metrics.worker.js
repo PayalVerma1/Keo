@@ -38,6 +38,7 @@ export const startMetricsWorker = async () => {
             STREAMS.METRICS,
             ">"
         ]);
+        //">" this means give me only those mesages which are not assigned to any other worker 
         if (!res) {
             continue;
         }
@@ -55,6 +56,21 @@ export const startMetricsWorker = async () => {
                         GROUP_NAME,
                         messageID,
                     ]);
+                    //explanation for my own understanding 
+                    // 📦 The Raw Response (res)
+                    //  └── 📂 Stream: "METRICS"
+                    //       └── 📜 Messages Array
+                    //            ├── ✉️ Message 1
+                    //            │    ├── 🔑 MessageID: "16958473-0"
+                    //            │    └── 📝 Fields: ["type", "cpu", "payload", '{"usage":80,"serviceId":"A"}']
+                    //            │         │
+                    //            │         ├─ 1. Find "payload" index
+                    //            │         ├─ 2. Parse the JSON next to it ───> ⚙️ { usage: 80, serviceId: "A" }
+                    //            │         ├─ 3. Save to DB (createMetric)
+                    //            │         ├─ 4. Broadcast (emitToService)
+                    //            │         └─ 5. Acknowledge (XACK) ───> 🗑️ (Tells Redis to clear it)
+                    //            │
+                    //            └── ✉️ Message 2 ...
                 }
                 catch (err) {
                     console.log("Failed to process metric event:", err);

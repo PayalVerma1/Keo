@@ -4,8 +4,8 @@ import * as logsService from "../modules/logs/logs.service.ts"
 import { emitToService } from "../modules/websocket/socket.server.ts";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events.ts";
 
-const GROUP_NAME = "metrics-workers";
-const CONSUMER_NAME = `metrics-consumer-${process.pid}`;
+const GROUP_NAME = "logs-workers";
+const CONSUMER_NAME = `logs-consumer-${process.pid}`;
 
 const ensureGroup = async () => {
   try {
@@ -23,7 +23,7 @@ const ensureGroup = async () => {
     }
   }
 };
-export const startMetricsWorker = async () => {
+export const startLogsWorker = async () => {
   await ensureGroup();
   while (true) {
     const res = await client.sendCommand([
@@ -59,7 +59,7 @@ export const startMetricsWorker = async () => {
             messageID,
           ]);
         } catch (err) {
-          console.log("Failed to process metric event:", err);
+          console.log("Failed to process log event:", err);
         }
       }
     }
