@@ -1,13 +1,11 @@
 import * as logsService from "./logs.service.js";
-import { emitToService, } from "../websocket/socket.server.js";
-import { SOCKET_EVENTS, } from "../websocket/socket.events.js";
+import { publishLog } from "../../streams/producers.js";
 export const createLog = async (req, res) => {
     try {
-        const log = await logsService.createLog(req.body);
-        emitToService(log.serviceId, SOCKET_EVENTS.LOG_CREATED, log);
-        res.status(201).json({
+        await publishLog(req.body);
+        res.status(202).json({
             success: true,
-            log,
+            message: "log event queued",
         });
     }
     catch (error) {

@@ -1,31 +1,17 @@
 import { Request, Response } from "express";
 import * as deploymentService from "./deployment.service.ts";
-import {
-  emitToService,
-} from "../websocket/socket.server.ts";
-import {
-  SOCKET_EVENTS,
-} from "../websocket/socket.events.ts";
+import { publishDeployment } from "../../streams/producers.ts";
 
 export const createDeployment = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const deployment =
-      await deploymentService.createDeployment(
-        req.body
-      );
+    await publishDeployment(req.body);
 
-    emitToService(
-      deployment.serviceId,
-      SOCKET_EVENTS.DEPLOYMENT_CREATED,
-      deployment
-    );
-
-    res.status(201).json({
+    res.status(202).json({
       success: true,
-      deployment,
+      message: "deployment event queued",
     });
   } catch (error: any) {
     res.status(500).json({

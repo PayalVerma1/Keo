@@ -1,12 +1,6 @@
 import { Request, Response } from "express";
 import * as logsService from "./logs.service.ts";
 import { publishLog } from "../../streams/producers.ts";
-import {
-  emitToService,
-} from "../websocket/socket.server.ts";
-import {
-  SOCKET_EVENTS,
-} from "../websocket/socket.events.ts";
 
 export const createLog = async (
   req: Request,
@@ -16,7 +10,7 @@ export const createLog = async (
    await publishLog(req.body);
 
 
-    res.status(201).json({
+    res.status(202).json({
       success: true,
       message:"log event queued",
     });
