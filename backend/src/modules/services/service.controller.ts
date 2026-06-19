@@ -18,7 +18,6 @@ export const createService = async (
     });
 
   } catch (error: any) {
-
     res.status(500).json({
       message: error.message,
     });

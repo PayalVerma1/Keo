@@ -5,6 +5,7 @@ import { connectRedis } from "./config/redis.ts";
 import { startMetricsWorker } from "./workers/metrics.worker.ts";
 import { startLogsWorker } from "./workers/logs.worker.ts";
 import { startDeploymentWorker } from "./workers/deployment.worker.ts";
+import { startAnomalyWorker } from "./workers/anomaly.worker.ts";
 const port = process.env.PORT || 3000;
 
 const server = createServer(app);
@@ -19,6 +20,9 @@ startLogsWorker().catch((error) => {
 });
 startDeploymentWorker().catch((error) => {
   console.error("Deployment worker failed:", error);
+});
+startAnomalyWorker().catch((error) => {
+  console.error("Anomaly worker failed:", error);
 });
 server.listen(port, () => {
   console.log(`Server is running at port ${port}`);

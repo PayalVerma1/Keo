@@ -6,6 +6,7 @@ export const SOCKET_EVENTS = {
     METRIC_CREATED: "metric:created",
     LOG_CREATED: "log:created",
     DEPLOYMENT_CREATED: "deployment:created",
+    ANOMALY_DETECTED: "anomaly:detected",
 };
 export const getServiceRoom = (serviceId) => {
     return `service:${serviceId}`;
