@@ -1,9 +1,10 @@
 import { prisma } from "../config/prisma.ts";
+import { analyzeAnomaly } from "../modules/logs/log-analyzer.service.ts";
 import { emitToService } from "../modules/websocket/socket.server.ts";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events.ts";
 
 const CHECK_INTERVAL_MS = 10_000;
-const LOOKBACK_MS = 5 * 60 * 1000;
+const LOOKBACk = 5 * 60 * 1000;
 
 const triggeredServices = new Set<string>();
 
@@ -41,7 +42,7 @@ const buildReasons = (metric: {
 };
 
 const checkAnomalies = async () => {
-  const since = new Date(Date.now() - LOOKBACK_MS);
+  const since = new Date(Date.now() - LOOKBACk);
 
   const metrics = await prisma.metrics.findMany({
     where: {
@@ -79,12 +80,40 @@ const checkAnomalies = async () => {
       take: 10,
     });
 
+    const deployments = await prisma.deployment.findMany({
+      where: {
+        serviceId: metric.serviceId,
+        createdAt: {
+          gte: since,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+    });
+
+    let analysis = null;
+
+    try {
+      analysis = await analyzeAnomaly(
+        metric.serviceId,
+        metric,
+        logs,
+        deployments
+      );
+    } catch (error) {
+      console.log("AI anomaly analysis failed:", error);
+    }
+
     const payload = {
       serviceId: metric.serviceId,
       severity,
       reasons: buildReasons(metric),
       metric,
       recentLogs: logs,
+      recentDeployments: deployments,
+      analysis,
       detectedAt: new Date().toISOString(),
     };
 

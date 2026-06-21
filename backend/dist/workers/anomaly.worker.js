@@ -1,8 +1,9 @@
 import { prisma } from "../config/prisma.js";
+import { analyzeAnomaly } from "../modules/logs/log-analyzer.service.js";
 import { emitToService } from "../modules/websocket/socket.server.js";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events.js";
 const CHECK_INTERVAL_MS = 10_000;
-const LOOKBACK_MS = 5 * 60 * 1000;
+const LOOKBACk = 5 * 60 * 1000;
 const triggeredServices = new Set();
 const getSeverity = (metric) => {
     if (metric.cpu > 95 || metric.memory > 95 || metric.errors > 20) {
@@ -26,7 +27,7 @@ const buildReasons = (metric) => {
     return reasons;
 };
 const checkAnomalies = async () => {
-    const since = new Date(Date.now() - LOOKBACK_MS);
+    const since = new Date(Date.now() - LOOKBACk);
     const metrics = await prisma.metrics.findMany({
         where: {
             createdAt: {
@@ -58,12 +59,33 @@ const checkAnomalies = async () => {
             },
             take: 10,
         });
+        const deployments = await prisma.deployment.findMany({
+            where: {
+                serviceId: metric.serviceId,
+                createdAt: {
+                    gte: since,
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 5,
+        });
+        let analysis = null;
+        try {
+            analysis = await analyzeAnomaly(metric.serviceId, metric, logs, deployments);
+        }
+        catch (error) {
+            console.log("AI anomaly analysis failed:", error);
+        }
         const payload = {
             serviceId: metric.serviceId,
             severity,
             reasons: buildReasons(metric),
             metric,
             recentLogs: logs,
+            recentDeployments: deployments,
+            analysis,
             detectedAt: new Date().toISOString(),
         };
         emitToService(metric.serviceId, SOCKET_EVENTS.ANOMALY_DETECTED, payload);
