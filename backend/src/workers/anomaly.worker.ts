@@ -2,6 +2,7 @@ import { prisma } from "../config/prisma.ts";
 import { analyzeAnomaly } from "../modules/logs/log-analyzer.service.ts";
 import { emitToService } from "../modules/websocket/socket.server.ts";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events.ts";
+import { json } from "node:stream/consumers";
 
 const CHECK_INTERVAL_MS = 10_000;
 const LOOKBACk = 5 * 60 * 1000;
@@ -105,6 +106,19 @@ const checkAnomalies = async () => {
     } catch (error) {
       console.log("AI anomaly analysis failed:", error);
     }
+    let savedInsight=null;
+    if(analysis){
+      savedInsight= await prisma.insight.create({
+        data:{
+          serviceId:metric.serviceId,
+          severity:analysis.severity,
+          rootCause:analysis.rootCause,
+          recommendation:analysis.recommendation,
+          metricContext:JSON.parse(JSON.stringify(metric)),
+          logContext:JSON.parse(JSON.stringify(logs)),
+        },
+      });
+    }
 
     const payload = {
       serviceId: metric.serviceId,
@@ -114,9 +128,10 @@ const checkAnomalies = async () => {
       recentLogs: logs,
       recentDeployments: deployments,
       analysis,
+      insight:savedInsight,
       detectedAt: new Date().toISOString(),
     };
-
+    
     emitToService(
       metric.serviceId,
       SOCKET_EVENTS.ANOMALY_DETECTED,
@@ -138,3 +153,4 @@ export const startAnomalyWorker = async () => {
     await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL_MS));
   }
 };
+
