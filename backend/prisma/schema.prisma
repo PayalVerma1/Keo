@@ -26,6 +26,7 @@ model Service{
   description  String? 
   ownerID      String       
   owner        user         @relation(fields:[ownerID],references:[id])
+  insights    Insight[]
   metrics      Metrics[]
   logs         Logs[]
   deployment   Deployment[]
@@ -58,4 +59,17 @@ model Deployment{
   serviceId   String
   service     Service @relation(fields:[serviceId], references:[id])
   createdAt DateTime @default(now())
+}
+model Insight {
+  id             String   @id @default(uuid())
+  severity       String
+  rootCause      String
+  recommendation String
+  metricContext  Json?
+  logContext     Json?
+  serviceId      String
+  service        Service  @relation(fields: [serviceId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([serviceId, createdAt])
 }
