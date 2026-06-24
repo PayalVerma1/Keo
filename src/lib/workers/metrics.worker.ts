@@ -1,8 +1,8 @@
 import { client } from "../config/redis";
 import { STREAMS } from "../streams/redis-streams";
 import * as metricsService from "../modules/metrics/metrics.service";
-import { emitToService } from "../modules/websocket/socket.server";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events";
+import { publishRealtimeEvent } from "../modules/websocket/realtime-bus";
 
 const GROUP_NAME = "metrics-workers";
 const CONSUMER_NAME = `metrics-consumer-${process.pid}`;
@@ -38,7 +38,11 @@ export const startMetricsWorker = async () => {
           const payload = JSON.parse((fields as string[])[payloadIndex + 1]);
           const metric = await metricsService.createMetric(payload);
 
-          emitToService(metric.serviceId, SOCKET_EVENTS.METRIC_CREATED, metric);
+          await publishRealtimeEvent(
+            metric.serviceId,
+            SOCKET_EVENTS.METRIC_CREATED,
+            metric
+          );
 
           await client.sendCommand([
             "XACK", STREAMS.METRICS, GROUP_NAME, messageID,

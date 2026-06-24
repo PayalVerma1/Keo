@@ -1,8 +1,8 @@
 import { client } from "../config/redis";
 import { STREAMS } from "../streams/redis-streams";
 import * as logsService from "../modules/logs/logs.service";
-import { emitToService } from "../modules/websocket/socket.server";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events";
+import { publishRealtimeEvent } from "../modules/websocket/realtime-bus";
 
 const GROUP_NAME = "logs-workers";
 const CONSUMER_NAME = `logs-consumer-${process.pid}`;
@@ -38,7 +38,11 @@ export const startLogsWorker = async () => {
           const payload = JSON.parse((fields as string[])[payloadIndex + 1]);
           const log = await logsService.createLog(payload);
 
-          emitToService(log.serviceId, SOCKET_EVENTS.LOG_CREATED, log);
+          await publishRealtimeEvent(
+            log.serviceId,
+            SOCKET_EVENTS.LOG_CREATED,
+            log
+          );
 
           await client.sendCommand([
             "XACK", STREAMS.LOGS, GROUP_NAME, messageID,

@@ -1,6 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
 import { getServiceRoom, SOCKET_EVENTS } from "./socket.events";
+import { subscribeRealtimeEvents } from "./realtime-bus";
 
 let io: Server | null = null;
 
@@ -30,6 +31,12 @@ export const initSocketServer = (server: HttpServer) => {
     socket.on(SOCKET_EVENTS.DISCONNECT, () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });
+  });
+
+  subscribeRealtimeEvents(({ serviceId, event, payload }) => {
+    io?.to(getServiceRoom(serviceId)).emit(event, payload);
+  }).catch((error) => {
+    console.error("Realtime subscriber failed:", error);
   });
 
   return io;

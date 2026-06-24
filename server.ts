@@ -1,49 +1,39 @@
-import { config } from "dotenv";
-import { resolve } from "path";
-
-config({ path: resolve(__dirname, ".env.local") });
-config({ path: resolve(__dirname, ".env") }); 
-
+import { loadEnvConfig } from "@next/env";
 import { createServer } from "http";
-import { parse } from "url";
-import next from "next";
-import { initSocketServer } from "./src/lib/modules/websocket/socket.server";
-import { connectRedis } from "./src/lib/config/redis";
-import { startMetricsWorker } from "./src/lib/workers/metrics.worker";
-import { startLogsWorker } from "./src/lib/workers/logs.worker";
-import { startDeploymentWorker } from "./src/lib/workers/deployment.worker";
-import { startAnomalyWorker } from "./src/lib/workers/anomaly.worker";
 
-const dev = process.env.NODE_ENV !== "production";
-const hostname = process.env.HOST || "localhost";
-const port = parseInt(process.env.PORT || "3000", 10);
+loadEnvConfig(process.cwd());
 
-const app = next({ dev, hostname, port });
-const handle = app.getRequestHandler();
+const port = parseInt(process.env.SOCKET_PORT || "4000", 10);
+const hostname = process.env.SOCKET_HOST || "localhost";
 
-app.prepare().then(async () => {
-   await connectRedis();
+const startSocketServer = async () => {
+  const { connectRedis } = await import("./src/lib/config/redis");
+  const { initSocketServer } = await import("./src/lib/modules/websocket/socket.server");
 
-  const httpServer = createServer(async (req, res) => {
-    try {
-      const parsedUrl = parse(req.url!, true);
-      await handle(req, res, parsedUrl);
-    } catch (err) {
-      console.error("Error handling", req.url, err);
-      res.statusCode = 500;
-      res.end("internal server error");
-    }
+  await connectRedis();
+
+  const httpServer = createServer((_req, res) => {
+    res.statusCode = 200;
+    res.end("Socket.IO server is running");
   });
 
   initSocketServer(httpServer);
 
-  httpServer.listen(port, () => {
-    console.log(`\n> Next.js + Socket.IO ready on http://${hostname}:${port}`);
-    console.log(`> Mode: ${dev ? "development" : "production"}\n`);
+  httpServer.once("error", (error: NodeJS.ErrnoException) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Socket port ${port} is already in use.`);
+      process.exit(1);
+    }
+
+    throw error;
   });
 
-  startMetricsWorker().catch((err) => console.error("Metrics worker crashed:", err));
-  startLogsWorker().catch((err) => console.error("Logs worker crashed:", err));
-  startDeploymentWorker().catch((err) => console.error("Deployment worker crashed:", err));
-  startAnomalyWorker().catch((err) => console.error("Anomaly worker crashed:", err));
+  httpServer.listen(port, hostname, () => {
+    console.log(`Socket.IO server ready on http://${hostname}:${port}`);
+  });
+};
+
+startSocketServer().catch((error) => {
+  console.error("Failed to start Socket.IO server:", error);
+  process.exit(1);
 });

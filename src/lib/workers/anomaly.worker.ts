@@ -1,7 +1,7 @@
 import { prisma } from "../config/prisma";
 import { analyzeAnomaly } from "../modules/logs/log-analyzer.service";
-import { emitToService } from "../modules/websocket/socket.server";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events";
+import { publishRealtimeEvent } from "../modules/websocket/realtime-bus";
 
 const CHECK_INTERVAL_MS = 10_000;
 const LOOKBACK = 5 * 60 * 1000;
@@ -103,7 +103,11 @@ const checkAnomalies = async () => {
       detectedAt: new Date().toISOString(),
     };
 
-    emitToService(metric.serviceId, SOCKET_EVENTS.ANOMALY_DETECTED, payload);
+    await publishRealtimeEvent(
+      metric.serviceId,
+      SOCKET_EVENTS.ANOMALY_DETECTED,
+      payload
+    );
     triggeredServices.add(metric.serviceId);
   }
 };

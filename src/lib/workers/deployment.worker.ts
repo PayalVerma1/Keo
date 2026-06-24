@@ -1,8 +1,8 @@
 import { client } from "../config/redis";
 import { STREAMS } from "../streams/redis-streams";
 import * as deploymentService from "../modules/deployments/deployment.service";
-import { emitToService } from "../modules/websocket/socket.server";
 import { SOCKET_EVENTS } from "../modules/websocket/socket.events";
+import { publishRealtimeEvent } from "../modules/websocket/realtime-bus";
 
 const GROUP_NAME = "deployment-workers";
 const CONSUMER_NAME = `deployment-consumer-${process.pid}`;
@@ -38,7 +38,7 @@ export const startDeploymentWorker = async () => {
           const payload = JSON.parse((fields as string[])[payloadIndex + 1]);
           const deployment = await deploymentService.createDeployment(payload);
 
-          emitToService(
+          await publishRealtimeEvent(
             deployment.serviceId,
             SOCKET_EVENTS.DEPLOYMENT_CREATED,
             deployment
