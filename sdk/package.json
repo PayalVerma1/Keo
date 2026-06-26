@@ -1,0 +1,39 @@
+{
+  "name": "@keo/monitor-sdk",
+  "version": "1.0.0",
+  "description": "Official SDK for integrating services with the Keo observability platform",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && cp dist/index.js dist/index.mjs",
+    "dev": "tsc --watch",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "observability",
+    "monitoring",
+    "metrics",
+    "logs",
+    "sdk",
+    "keo"
+  ],
+  "author": "Keo Platform",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  }
+}

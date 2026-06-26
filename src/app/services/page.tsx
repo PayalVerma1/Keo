@@ -115,8 +115,13 @@ export default function ServicesPage() {
         const data = await res.json();
         throw new Error(data.message);
       }
+      const data = await res.json();
       setNewService({ name: "", description: "" });
       setShowCreate(false);
+      if (data.service?.id) {
+        router.push(`/services/${data.service.id}`);
+        return;
+      }
       fetchServices(token!);
     } catch (err: any) {
       setError(err.message);

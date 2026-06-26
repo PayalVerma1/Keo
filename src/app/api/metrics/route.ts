@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/middleware/auth";
+import { verifyAuth, verifyApiKey } from "@/lib/middleware/auth";
 import { publishMetric } from "@/lib/streams/producers";
 
+/**
+ * POST /api/metrics
+ *
+ * Accepts two authentication modes:
+ *  1. User JWT  — dashboard / internal callers
+ *  2. SDK API key — @keo/monitor-sdk (service-scoped)
+ */
 export async function POST(req: NextRequest) {
+  // Try SDK API key first (service-scoped)
+  const sdkAuth = verifyApiKey(req);
+  if (!("error" in sdkAuth)) {
+    try {
+      const body = await req.json();
+      // Enforce that the SDK can only report for its own serviceId
+      await publishMetric({ ...body, serviceId: sdkAuth.payload.serviceId });
+      return NextResponse.json(
+        { success: true, message: "metrics event queued" },
+        { status: 202 }
+      );
+    } catch (error: any) {
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+  }
+
+  // Fall back to user JWT
   const auth = verifyAuth(req);
   if ("error" in auth) return auth.error;
 
