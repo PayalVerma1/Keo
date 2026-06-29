@@ -1,16 +1,10 @@
 import { HttpClient } from "./http-client";
-import { DeploymentPayload, MonitorConfig } from "./types";
+import { MonitorConfig } from "./types";
 
-/**
- * DeploymentTracker
- *
- * Reports deployment events to POST /api/deployments.
- * Call `track()` from your CI/CD pipeline or startup hook.
- */
 export class DeploymentTracker {
-  private readonly http: HttpClient;
-  private readonly serviceId: string;
-  private readonly silent: boolean;
+  private http: HttpClient;
+  private serviceId: string;
+  private silent: boolean;
 
   constructor(http: HttpClient, config: MonitorConfig) {
     this.http = http;
@@ -18,27 +12,11 @@ export class DeploymentTracker {
     this.silent = config.silent ?? false;
   }
 
-  /**
-   * Record a new deployment.
-   *
-   * @param version - Semantic version, Git SHA, or any identifier
-   *
-   * @example
-   * await monitor.deployments.track("v2.4.1");
-   * await monitor.deployments.track(process.env.GIT_SHA);
-   */
   async track(version: string): Promise<void> {
-    const payload: Omit<DeploymentPayload, "serviceId"> & { serviceId: string } = {
-      version,
-      serviceId: this.serviceId,
-    };
-
     await this.http
-      .post("/api/deployments", payload as unknown as Record<string, unknown>)
+      .post("/api/deployments", { version, serviceId: this.serviceId })
       .catch((err: unknown) => {
-        if (!this.silent) {
-          console.error("[keo-sdk] Failed to track deployment:", err);
-        }
+        if (!this.silent) console.error("[keo-sdk] Failed to track deployment:", err);
       });
 
     if (!this.silent) {
