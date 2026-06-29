@@ -3,61 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  LayoutGrid, Layers, FileText, Rocket, BrainCircuit,
-  Bell, Settings, Search, Plus, Activity, Clock,
-  CheckCircle2, AlertTriangle, ChevronRight, Loader2
+  Layers, Plus, Activity, Clock,
+  CheckCircle2, ChevronRight, Loader2
 } from "lucide-react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
 
 interface Service {
   id: string;
   name: string;
   description?: string;
   createdAt: string;
-}
-
-function Sidebar({ active }: { active: string }) {
-  const router = useRouter();
-
-  const navItems = [
-    { label: "Overview", icon: <LayoutGrid size={18} />, href: "/" },
-    { label: "Services", icon: <Layers size={18} />, href: "/services" },
-    { label: "Logs", icon: <FileText size={18} />, href: "/logs" },
-    { label: "Deployments", icon: <Rocket size={18} />, href: "/deployments" },
-    { label: "AI Insights", icon: <BrainCircuit size={18} />, href: "/insights" },
-  ];
-
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-header">Obsidian Labs</div>
-      <nav className="nav-menu">
-        {navItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`nav-item${active === item.href ? " active" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              router.push(item.href);
-            }}
-          >
-            {item.icon} {item.label}
-          </a>
-        ))}
-      </nav>
-      <div className="sidebar-footer">
-        <div className="status-indicator">
-          <div className="status-dot" />
-          Connected
-        </div>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "24px" }}>
-          WebSocket: Live
-        </div>
-        <a href="#" className="nav-item" style={{ padding: 0 }}>
-          <FileText size={18} /> Docs
-        </a>
-      </div>
-    </aside>
-  );
 }
 
 export default function ServicesPage() {
@@ -130,50 +86,39 @@ export default function ServicesPage() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("obs_token");
+    localStorage.removeItem("obs_user");
+    router.replace("/login");
+  };
+
   if (!mounted) return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar active="/services" />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} />
       <main className="main-content">
-        {/* Topbar */}
-        <header className="topbar">
-          <div className="search-box">
-            <Search size={16} color="var(--text-muted)" />
-            <input type="text" placeholder="Search services..." />
-          </div>
-          <div className="topbar-actions">
-            <div className="live-badge">
-              <div className="status-dot" />
-              Live
-            </div>
-            <div className="icon-btn"><Bell size={18} /></div>
-            <div className="icon-btn"><Settings size={18} /></div>
-            <div className="avatar">
-              <div style={{ width: "100%", height: "100%", background: "linear-gradient(45deg, #8b5cf6, #3b82f6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"12px", fontWeight:700, color:"white" }}>
-                {user?.name?.[0]?.toUpperCase() ?? "U"}
-              </div>
-            </div>
-          </div>
-        </header>
+        <Topbar userName={user?.name} />
 
         <div className="dashboard-scroll-area">
           {/* Page header */}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
-            <div>
-              <h1 style={{ fontSize:"22px", fontWeight:700, marginBottom:"4px" }}>Services</h1>
-              <p style={{ fontSize:"13px", color:"var(--text-secondary)" }}>
-                Manage and monitor your infrastructure services
+          <div className="page-hero">
+            <div className="page-title-wrap">
+              <h1 className="page-title">Services</h1>
+              <p className="page-subtitle">
+                Manage and monitor your infrastructure services with the same polished control plane experience as the dashboard.
               </p>
             </div>
-            <button
-              id="create-service-btn"
-              className="form-submit"
-              style={{ width:"auto", padding:"10px 20px", display:"flex", alignItems:"center", gap:"8px" }}
-              onClick={() => setShowCreate((v) => !v)}
-            >
-              <Plus size={16} /> New Service
-            </button>
+            <div className="page-actions">
+              <button
+                id="create-service-btn"
+                className="form-submit"
+                style={{ width:"auto", padding:"10px 20px", display:"flex", alignItems:"center", gap:"8px" }}
+                onClick={() => setShowCreate((v) => !v)}
+              >
+                <Plus size={16} /> New Service
+              </button>
+            </div>
           </div>
 
           {/* Create form */}
@@ -217,7 +162,7 @@ export default function ServicesPage() {
               <Loader2 size={32} className="spin" color="var(--accent-green)" />
             </div>
           ) : services.length === 0 ? (
-            <div className="card" style={{ textAlign:"center", padding:"60px 20px" }}>
+            <div className="card" style={{ textAlign:"center", padding:"56px 20px" }}>
               <Layers size={48} color="var(--text-muted)" style={{ margin:"0 auto 16px" }} />
               <p style={{ fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>No services yet</p>
               <p style={{ fontSize:"13px", color:"var(--text-secondary)" }}>

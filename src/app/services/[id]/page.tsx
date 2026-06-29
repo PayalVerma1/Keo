@@ -6,18 +6,10 @@ import {
   Activity,
   AlertCircle,
   ArrowLeft,
-  Bell,
-  BrainCircuit,
   Cpu,
-  FileText,
   HardDrive,
-  LayoutGrid,
-  Layers,
   Loader2,
   Play,
-  Rocket,
-  Search,
-  Settings,
   Zap,
 } from "lucide-react";
 import {
@@ -32,6 +24,8 @@ import {
   YAxis,
 } from "recharts";
 import { io, Socket } from "socket.io-client";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
 
 interface Service {
   id: string;
@@ -77,50 +71,6 @@ interface Insight {
 
 const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
 
-function Sidebar({ active }: { active: string }) {
-  const router = useRouter();
-  const navItems = [
-    { label: "Overview", icon: <LayoutGrid size={18} />, href: "/" },
-    { label: "Services", icon: <Layers size={18} />, href: "/services" },
-    { label: "Logs", icon: <FileText size={18} />, href: "/logs" },
-    { label: "Deployments", icon: <Rocket size={18} />, href: "/deployments" },
-    { label: "AI Insights", icon: <BrainCircuit size={18} />, href: "/insights" },
-  ];
-
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-header">Obsidian Labs</div>
-      <nav className="nav-menu">
-        {navItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`nav-item${active === item.href ? " active" : ""}`}
-            onClick={(event) => {
-              event.preventDefault();
-              router.push(item.href);
-            }}
-          >
-            {item.icon} {item.label}
-          </a>
-        ))}
-      </nav>
-      <div className="sidebar-footer">
-        <div className="status-indicator">
-          <div className="status-dot" />
-          Connected
-        </div>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "24px" }}>
-          WebSocket: Live
-        </div>
-        <a href="#" className="nav-item" style={{ padding: 0 }}>
-          <FileText size={18} /> Docs
-        </a>
-      </div>
-    </aside>
-  );
-}
-
 const authHeaders = (token: string) => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${token}`,
@@ -142,6 +92,7 @@ export default function ServiceDetailPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [user, setUser] = useState<{ name: string } | null>(null);
   const [socketState, setSocketState] = useState<"connecting" | "live" | "offline">("connecting");
   const [mounted, setMounted] = useState(false);
 
@@ -178,6 +129,13 @@ export default function ServiceDetailPage() {
     if (!token) {
       router.replace("/login");
       return;
+    }
+
+    const storedUser = localStorage.getItem("obs_user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {}
     }
 
     loadTelemetry(token)
@@ -299,55 +257,42 @@ export default function ServiceDetailPage() {
   const latest = metrics.at(-1);
   const latestInsight = insights[0];
 
+  const handleLogout = () => {
+    localStorage.removeItem("obs_token");
+    localStorage.removeItem("obs_user");
+    router.replace("/login");
+  };
+
   if (!mounted) return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar active="/services" />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} />
       <main className="main-content">
-        <header className="topbar">
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button className="icon-btn" onClick={() => router.push("/services")} type="button" aria-label="Back to services">
-              <ArrowLeft size={18} />
-            </button>
-            <div className="search-box">
-              <Search size={16} color="var(--text-muted)" />
-              <input type="text" placeholder="Search metrics..." />
-            </div>
-          </div>
-          <div className="topbar-actions">
-            <div className="live-badge">
-              <div className="status-dot" />
-              {socketState === "live" ? "Socket live" : socketState === "offline" ? "Socket offline" : "Connecting"}
-            </div>
-            <div className="icon-btn"><Bell size={18} /></div>
-            <div className="icon-btn"><Settings size={18} /></div>
-            <div className="avatar">
-              <div style={{ width: "100%", height: "100%", background: "linear-gradient(45deg, #8b5cf6, #3b82f6)" }} />
-            </div>
-          </div>
-        </header>
+        <Topbar userName={user?.name} />
 
         <div className="dashboard-scroll-area">
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap" }}>
-            <div>
-              <h1 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "4px" }}>
+          <div className="page-hero">
+            <div className="page-title-wrap">
+              <h1 className="page-title">
                 {service?.name ?? "Service monitor"}
               </h1>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+              <p className="page-subtitle">
                 Metrics are generated by POST requests, queued in Redis Streams, saved by workers, then visualized here.
               </p>
             </div>
-            <button
-              className="form-submit"
-              onClick={generateTelemetry}
-              type="button"
-              disabled={generating}
-              style={{ width: "auto", minWidth: "220px", padding: "10px 18px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}
-            >
-              {generating ? <Loader2 size={16} className="spin" /> : <Play size={16} />}
-              {generating ? "Generating telemetry" : "Generate test telemetry"}
-            </button>
+            <div className="page-actions">
+              <button
+                className="form-submit"
+                onClick={generateTelemetry}
+                type="button"
+                disabled={generating}
+                style={{ width: "auto", minWidth: "220px", padding: "10px 18px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}
+              >
+                {generating ? <Loader2 size={16} className="spin" /> : <Play size={16} />}
+                {generating ? "Generating telemetry" : "Generate test telemetry"}
+              </button>
+            </div>
           </div>
 
           {notice && (
@@ -405,17 +350,17 @@ export default function ServiceDetailPage() {
                 </div>
               )}
 
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(320px, 0.7fr)", gap: "20px" }}>
+              <div className="content-grid">
                 <section className="card">
                   <div className="card-header">
                     <span className="card-title">Recent logs</span>
                     <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{logs.length} entries</span>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div className="log-list">
                     {logs.length === 0 ? (
                       <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>No logs yet.</p>
                     ) : logs.slice(0, 8).map((log, index) => (
-                      <div key={log.id ?? `${log.message}-${index}`} style={{ display: "grid", gridTemplateColumns: "72px 70px minmax(0, 1fr)", gap: "10px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                      <div key={log.id ?? `${log.message}-${index}`} className="log-row">
                         <span>{new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                         <strong style={{ color: log.level === "error" ? "var(--accent-red)" : log.level === "warn" ? "var(--accent-yellow)" : "var(--accent-green)" }}>
                           {log.level}
@@ -432,7 +377,7 @@ export default function ServiceDetailPage() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {deployments[0] ? (
-                      <div>
+                      <div className="insight-card">
                         <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Latest deployment</p>
                         <strong>{deployments[0].version}</strong>
                       </div>
@@ -440,7 +385,7 @@ export default function ServiceDetailPage() {
                       <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>No deployments yet.</p>
                     )}
                     {latestInsight ? (
-                      <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "14px" }}>
+                      <div className="insight-card">
                         <p style={{ fontSize: "13px", color: "var(--accent-yellow)", marginBottom: "6px" }}>
                           {latestInsight.severity}
                         </p>
