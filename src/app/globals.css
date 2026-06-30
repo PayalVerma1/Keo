@@ -427,6 +427,158 @@ body {
   color: var(--text-secondary);
 }
 
+/* Compact shell used by dense operations pages */
+.compact-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #0d0e12;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.compact-sidebar {
+  width: 200px;
+  background: #0d0e12;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+}
+
+.compact-sidebar-brand {
+  padding: 20px 20px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.compact-sidebar-status {
+  margin: 0 12px 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(46, 200, 133, 0.08);
+  border: 1px solid rgba(46, 200, 133, 0.18);
+}
+
+.compact-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2ee59d;
+  box-shadow: 0 0 6px #2ee59d;
+}
+
+.compact-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 11px 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+}
+
+.compact-nav-item.active {
+  color: #2ee59d;
+  background: rgba(46, 200, 133, 0.08);
+  border-left-color: #2ee59d;
+  font-weight: 600;
+}
+
+.compact-nav-item:hover,
+.compact-footer-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.compact-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 0;
+}
+
+.compact-footer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 9px 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+}
+
+.compact-main {
+  margin-left: 200px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.compact-topbar {
+  height: 52px;
+  background: #0d0e12;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.compact-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 7px 12px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.compact-search input {
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 13px;
+  width: 100%;
+}
+
+.compact-icon-button {
+  min-width: 40px;
+  min-height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.compact-user-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 /* ─── Service List Item ───────────────────────────────── */
 .service-list-item:hover {
   border-color: rgba(255, 255, 255, 0.15);
@@ -440,6 +592,24 @@ body {
   to   { transform: rotate(360deg); }
 }
 .spin { animation: spin 1s linear infinite; }
+
+/* ─── Pulse dot (live stream) ─────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px #2ee59d; }
+  50%       { opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 12px #2ee59d; }
+}
+
+/* ─── Compact layout flex ─────────────────────────────── */
+.compact-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+.compact-main {
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
 /* ─── Login Page ──────────────────────────────────────── */
 .login-page {
