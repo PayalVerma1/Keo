@@ -1,4 +1,3 @@
-"use client";
 
 import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
@@ -12,7 +11,7 @@ interface TopbarProps {
 export function Topbar({
   userName,
   searchPlaceholder = "Search telemetry...",
-  liveLabel = "Live – auto-refresh 30s",
+  liveLabel = "Live – WebSockets",
 }: TopbarProps) {
   const router = useRouter();
   const initial = userName?.trim().charAt(0)?.toUpperCase() ?? "U";

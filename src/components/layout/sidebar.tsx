@@ -1,4 +1,4 @@
-"use client";
+
 
 import { useRouter, usePathname } from "next/navigation";
 import { BrainCircuit, FileText, LayoutGrid, Layers, LogOut, Rocket } from "lucide-react";
