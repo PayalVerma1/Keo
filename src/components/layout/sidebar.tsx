@@ -20,6 +20,7 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
     { label: "Logs", icon: <FileText size={18} />, href: "/logs" },
     { label: "Deployments", icon: <Rocket size={18} />, href: "/deployments" },
     { label: "AI Insights", icon: <BrainCircuit size={18} />, href: "/insights" },
+    { label: "Docs", icon: <FileText size={18} />, href: "/docs" },
   ];
 
   return (
@@ -57,9 +58,23 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
         </div>
 
         {userName && (
-          <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", fontWeight: 500 }}>
+          <button
+            type="button"
+            onClick={() => router.push("/profile")}
+            style={{
+              fontSize: "12px",
+              color: "var(--text-secondary)",
+              marginBottom: "12px",
+              fontWeight: 500,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
             👤 {userName}
-          </div>
+          </button>
         )}
 
         {onLogout && (
@@ -80,10 +95,6 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
             <LogOut size={16} /> Sign Out
           </button>
         )}
-
-        <a href="#" className="nav-item" style={{ padding: "8px 0", marginTop: "8px" }}>
-          <FileText size={18} /> Docs
-        </a>
       </div>
     </aside>
   );

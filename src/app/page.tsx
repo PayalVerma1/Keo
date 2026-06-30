@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { io, Socket } from "socket.io-client";
 import { Layers, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -27,6 +28,8 @@ interface DashboardData {
   };
 }
 
+const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const router = useRouter();
@@ -35,31 +38,56 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [data, setData] = useState<DashboardData | null>(null);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [socketState, setSocketState] = useState<"connecting" | "live" | "offline">("connecting");
+  const socketRef = useRef<Socket | null>(null);
+  const joinedServicesRef = useRef<string[]>([]);
 
-  // ── Auth guard + initial fetch ──────────────────────────────────────────────
+  const joinServiceRooms = useCallback((services: Array<{ id: string; name: string }>) => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const pending = services.filter((service) => !joinedServicesRef.current.includes(service.id));
+    pending.forEach((service) => {
+      socket.emit("service:join", service.id);
+    });
+
+    if (pending.length > 0) {
+      joinedServicesRef.current = [...joinedServicesRef.current, ...pending.map((service) => service.id)];
+    }
+  }, []);
+
   const fetchDashboard = useCallback(async (token: string) => {
     try {
-      const res = await fetch("/api/dashboard/metrics", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [metricsRes, servicesRes] = await Promise.all([
+        fetch("/api/dashboard/metrics", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/services", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      if (res.status === 401) {
-        // Token expired or invalid
+      if (metricsRes.status === 401 || servicesRes.status === 401) {
         localStorage.removeItem("obs_token");
         localStorage.removeItem("obs_user");
         router.replace("/login");
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to load dashboard data");
-      const json: DashboardData = await res.json();
+      if (!metricsRes.ok) throw new Error("Failed to load dashboard data");
+      if (!servicesRes.ok) throw new Error("Failed to load services");
+
+      const json: DashboardData = await metricsRes.json();
+      const services = (await servicesRes.json()) as Array<{ id: string; name: string }>;
+
       setData(json);
+      joinServiceRooms(services);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [joinServiceRooms, router]);
 
   useEffect(() => {
     setMounted(true);
@@ -77,13 +105,33 @@ export default function Dashboard() {
 
     fetchDashboard(token);
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      const t = localStorage.getItem("obs_token");
-      if (t) fetchDashboard(t);
-    }, 30_000);
+    const socket = io(socketUrl, { transports: ["websocket"] });
+    socketRef.current = socket;
+    setSocketState("connecting");
 
-    return () => clearInterval(interval);
+    socket.on("connect", () => {
+      setSocketState("live");
+    });
+    socket.on("disconnect", () => setSocketState("offline"));
+    socket.on("connect_error", () => setSocketState("offline"));
+
+    const refreshFromSocket = () => {
+      const currentToken = localStorage.getItem("obs_token");
+      if (currentToken) {
+        fetchDashboard(currentToken);
+      }
+    };
+
+    socket.on("metric:created", refreshFromSocket);
+    socket.on("log:created", refreshFromSocket);
+    socket.on("deployment:created", refreshFromSocket);
+    socket.on("anomaly:detected", refreshFromSocket);
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+      joinedServicesRef.current = [];
+    };
   }, [router, fetchDashboard]);
 
   const handleLogout = () => {
@@ -98,13 +146,10 @@ export default function Dashboard() {
     <div className="layout-wrapper">
       <Sidebar onLogout={handleLogout} userName={user?.name ?? ""} />
 
-      {/* Main Content Wrapper */}
       <main className="main-content">
         <Topbar userName={user?.name} />
 
-        {/* Dashboard Area */}
         <div className="dashboard-scroll-area">
-          {/* Error state */}
           {error && (
             <ErrorBanner
               message={error}
@@ -118,18 +163,15 @@ export default function Dashboard() {
           )}
 
           <div className="dashboard-grid">
-            {/* Left Content Column */}
             <div>
-              {/* Stats Row */}
               <ServiceMetricCards loading={loading} data={data} />
 
-              {/* Charts Grid */}
               {!loading && data && data.cpu.length > 0 ? (
                 <div className="charts-grid">
-                  <ChartCard title="CPU USAGE (%)"  data={data.cpu}     color="#4B5563" />
-                  <ChartCard title="MEMORY (GB)"    data={data.memory}  color="#10B981" opacity={0.7} />
-                  <ChartCard title="LATENCY (MS)"   data={data.latency} color="#B45309" opacity={0.8} />
-                  <ChartCard title="ERROR RATE (%)" data={data.errors}  color="#EF4444" opacity={0.6} />
+                  <ChartCard title="CPU USAGE (%)" data={data.cpu} color="#4B5563" />
+                  <ChartCard title="MEMORY (GB)" data={data.memory} color="#10B981" opacity={0.7} />
+                  <ChartCard title="LATENCY (MS)" data={data.latency} color="#B45309" opacity={0.8} />
+                  <ChartCard title="ERROR RATE (%)" data={data.errors} color="#EF4444" opacity={0.6} />
                 </div>
               ) : loading ? (
                 <div className="charts-grid">
@@ -142,7 +184,6 @@ export default function Dashboard() {
                 <EmptyMetricsState />
               )}
 
-              {/* Infrastructure Status (static – from real service list) */}
               {data && data.summary.totalServices > 0 && (
                 <div className="card">
                   <div className="card-header">
@@ -166,12 +207,12 @@ export default function Dashboard() {
                   </div>
                   <div className="infra-grid">
                     {[
-                      { name: "us-east-1",     load: 12.4, status: "normal" },
-                      { name: "us-west-2",     load: 4.2,  status: "normal" },
-                      { name: "eu-central-1",  load: 95.8, status: "critical" },
-                      { name: "ap-northeast-1",load: 2.1,  status: "normal" },
-                      { name: "sa-east-1",     load: 8.9,  status: "normal" },
-                      { name: "af-south-1",    load: 1.2,  status: "normal" },
+                      { name: "us-east-1", load: 12.4, status: "normal" },
+                      { name: "us-west-2", load: 4.2, status: "normal" },
+                      { name: "eu-central-1", load: 95.8, status: "critical" },
+                      { name: "ap-northeast-1", load: 2.1, status: "normal" },
+                      { name: "sa-east-1", load: 8.9, status: "normal" },
+                      { name: "af-south-1", load: 1.2, status: "normal" },
                     ].map((region) => (
                       <div className="region-card" key={region.name}>
                         <div className="region-header">
@@ -183,10 +224,7 @@ export default function Dashboard() {
                           )}
                         </div>
                         <div className="load-bar-bg">
-                          <div
-                            className={`load-bar-fill ${region.status}`}
-                            style={{ width: `${region.load}%` }}
-                          />
+                          <div className={`load-bar-fill ${region.status}`} style={{ width: `${region.load}%` }} />
                         </div>
                         <div className="region-load">Load: {region.load.toFixed(1)}%</div>
                       </div>
@@ -196,12 +234,8 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Right Sidebar Column */}
             <div className="right-sidebar">
-              {/* AI Insights */}
               <InsightsPanel />
-
-              {/* Live Stream */}
               <LiveStream />
             </div>
           </div>

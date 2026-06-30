@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
 
 interface TopbarProps {
@@ -13,6 +14,7 @@ export function Topbar({
   searchPlaceholder = "Search telemetry...",
   liveLabel = "Live – auto-refresh 30s",
 }: TopbarProps) {
+  const router = useRouter();
   const initial = userName?.trim().charAt(0)?.toUpperCase() ?? "U";
 
   return (
@@ -33,7 +35,13 @@ export function Topbar({
         <button type="button" className="icon-btn" aria-label="Settings">
           <Settings size={18} />
         </button>
-        <div className="avatar" aria-label="User avatar">
+        <button
+          type="button"
+          className="avatar"
+          aria-label="User avatar"
+          onClick={() => router.push("/profile")}
+          style={{ border: "none", padding: 0, cursor: "pointer" }}
+        >
           <div
             style={{
               width: "100%",
@@ -49,7 +57,7 @@ export function Topbar({
           >
             {initial}
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );
