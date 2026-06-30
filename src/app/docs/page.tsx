@@ -25,7 +25,7 @@ const CODE_INIT = [
   "const monitor = new Monitor({",
   '  apiKey: "YOUR_SERVICE_API_KEY",   // Dashboard > Services > API Key',
   '  serviceId: "YOUR_SERVICE_ID",     // Dashboard > Services > copy ID',
-  '  baseUrl: "http://localhost:3000", // Your Obsidian Labs server URL',
+  '  baseUrl: "http://localhost:3000", // Your Keo server URL',
   "  metricsInterval: 30000,           // Send metrics every 30 s (optional)",
   "  logBatchSize: 10,                 // Batch size before flush (optional)",
   "  silent: false,                    // Suppress SDK logs (optional)",
@@ -334,7 +334,7 @@ export default function DocsPage() {
             <main className="docs-main">
               <div className="card" style={{ marginBottom: "24px", padding: "24px" }}>
                 <div className="docs-chip">Developer Documentation</div>
-                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Obsidian Labs SDK</h1>
+                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Keo SDK</h1>
                 <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "680px" }}>
                   The <InlineCode>@keo/monitor-sdk</InlineCode> lets you instrument any Node.js app in minutes — metrics, logs, and deployments automatically flow into your observability dashboard.
                 </p>
@@ -405,7 +405,7 @@ export default function DocsPage() {
                   rows={[
                     ["apiKey", "string", "required", "Service-scoped API key from Dashboard → Profile → API Keys"],
                     ["serviceId", "string", "required", "UUID of your service (Dashboard → Services)"],
-                    ["baseUrl", "string", "http://localhost:3000", "Base URL of your Obsidian Labs server"],
+                    ["baseUrl", "string", "http://localhost:3000", "Base URL of your Keo server"],
                     ["metricsInterval", "number", "30000", "How often (ms) to auto-send CPU/memory metrics"],
                     ["logBatchSize", "number", "10", "Number of logs to collect before flushing"],
                     ["silent", "boolean", "false", "Suppress SDK console output (set true in production)"],
@@ -435,7 +435,7 @@ export default function DocsPage() {
 
               <Section id="api" title="API Reference">
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: 1.6 }}>
-                  All endpoints are on your Obsidian Labs server. Dashboard calls use a user JWT; SDK calls use a service-scoped API key — both passed as <InlineCode>Authorization: Bearer &lt;token&gt;</InlineCode>.
+                  All endpoints are on your Keo server. Dashboard calls use a user JWT; SDK calls use a service-scoped API key — both passed as <InlineCode>Authorization: Bearer &lt;token&gt;</InlineCode>.
                 </p>
                 <Table
                   headers={["Method", "Endpoint", "Auth", "Description"]}

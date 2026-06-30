@@ -25,7 +25,7 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">Obsidian Labs</div>
+      <div className="sidebar-header">Keo</div>
 
       <nav className="nav-menu">
         {navItems.map((item) => {

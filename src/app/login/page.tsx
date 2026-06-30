@@ -80,7 +80,7 @@ export default function LoginPage() {
           <div className="login-logo-icon">
             <BrainCircuit size={28} color="#a5b4fc" />
           </div>
-          <span className="login-brand">Obsidian Labs</span>
+          <span className="login-brand">Keo</span>
         </div>
 
         <h1 className="login-title">

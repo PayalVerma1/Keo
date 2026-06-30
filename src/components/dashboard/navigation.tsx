@@ -40,7 +40,7 @@ export function AppSidebar({
   if (variant === "compact") {
     return (
       <aside className="compact-sidebar">
-        <div className="compact-sidebar-brand">Obsidian Labs</div>
+        <div className="compact-sidebar-brand">Keo</div>
         <div className="compact-sidebar-status">
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div className="compact-status-dot" />
@@ -95,7 +95,7 @@ export function AppSidebar({
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">Obsidian Labs</div>
+      <div className="sidebar-header">Keo</div>
       <nav className="nav-menu">
         {navItems.map((item) => {
           const Icon = item.icon;
