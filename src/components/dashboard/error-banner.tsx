@@ -5,26 +5,11 @@ interface ErrorBannerProps {
 
 export function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
   return (
-    <div
-      style={{
-        background: "var(--accent-red-dim)",
-        border: "1px solid var(--accent-red)",
-        borderRadius: "8px",
-        padding: "12px 16px",
-        color: "var(--accent-red)",
-        marginBottom: "24px",
-        fontSize: "13px",
-      }}
-    >
-      ⚠ {message} –{" "}
+    <div className="mb-6 rounded-lg border border-[var(--accent-red)] bg-[var(--accent-red-dim)] px-4 py-3 text-[13px] text-[var(--accent-red)]">
+      {message} -{" "}
       <button
-        style={{
-          color: "inherit",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          textDecoration: "underline",
-        }}
+        type="button"
+        className="min-h-10 cursor-pointer rounded-md border-0 bg-transparent px-1 text-inherit underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)]"
         onClick={onRetry}
       >
         Retry

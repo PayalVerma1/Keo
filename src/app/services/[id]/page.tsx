@@ -283,11 +283,10 @@ export default function ServiceDetailPage() {
             </div>
             <div className="page-actions">
               <button
-                className="form-submit"
+                className="form-submit sm:w-auto sm:min-w-[220px] sm:px-[18px] sm:py-2.5"
                 onClick={generateTelemetry}
                 type="button"
                 disabled={generating}
-                style={{ width: "auto", minWidth: "220px", padding: "10px 18px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}
               >
                 {generating ? <Loader2 size={16} className="spin" /> : <Play size={16} />}
                 {generating ? "Generating telemetry" : "Generate test telemetry"}
@@ -337,7 +336,7 @@ export default function ServiceDetailPage() {
                   <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
                     Click generate test telemetry to send metrics/logs/deployment events through Redis Streams.
                   </p>
-                  <button className="form-submit" onClick={generateTelemetry} disabled={generating} type="button" style={{ width: "auto", margin: "0 auto", padding: "10px 18px" }}>
+                  <button className="form-submit mx-auto sm:w-auto sm:px-[18px] sm:py-2.5" onClick={generateTelemetry} disabled={generating} type="button">
                     {generating ? "Queueing events" : "Generate now"}
                   </button>
                 </div>

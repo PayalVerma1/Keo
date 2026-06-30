@@ -2,29 +2,14 @@ import { Activity } from "lucide-react";
 
 export function EmptyMetricsState() {
   return (
-    <div
-      className="card"
-      style={{
-        marginBottom: "24px",
-        padding: "40px 20px",
-        textAlign: "center",
-        alignItems: "center",
-      }}
-    >
-      <Activity size={48} color="var(--text-muted)" style={{ marginBottom: "16px" }} />
-      <p style={{ fontSize: "16px", fontWeight: 600, marginBottom: "8px" }}>
+    <div className="card mb-6 items-center px-5 py-10 text-center">
+      <Activity size={48} className="mb-4 text-[var(--text-muted)]" aria-hidden="true" />
+      <p className="mb-2 text-base font-semibold">
         No metrics data yet
       </p>
-      <p style={{ fontSize: "13px", color: "var(--text-secondary)", maxWidth: "400px" }}>
+      <p className="max-w-[400px] text-[13px] text-[var(--text-secondary)]">
         Create a service and push metrics via{" "}
-        <code
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            padding: "2px 6px",
-            borderRadius: "4px",
-            fontFamily: "monospace",
-          }}
-        >
+        <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono">
           POST /api/metrics
         </code>{" "}
         to see live charts here.

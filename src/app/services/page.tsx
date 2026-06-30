@@ -112,8 +112,7 @@ export default function ServicesPage() {
             <div className="page-actions">
               <button
                 id="create-service-btn"
-                className="form-submit"
-                style={{ width:"auto", padding:"10px 20px", display:"flex", alignItems:"center", gap:"8px" }}
+                className="form-submit sm:w-auto sm:px-5 sm:py-2.5"
                 onClick={() => setShowCreate((v) => !v)}
               >
                 <Plus size={16} /> New Service
@@ -145,8 +144,8 @@ export default function ServicesPage() {
                     onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                   />
                 </div>
-                <div style={{ display:"flex", gap:"12px" }}>
-                  <button type="submit" className="form-submit" style={{ width:"auto", padding:"10px 20px" }} disabled={creating}>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button type="submit" className="form-submit sm:w-auto sm:px-5 sm:py-2.5" disabled={creating}>
                     {creating ? <Loader2 size={16} className="spin" /> : "Create"}
                   </button>
                   <button type="button" className="btn-outline" onClick={() => setShowCreate(false)}>Cancel</button>

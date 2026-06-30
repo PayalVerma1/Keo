@@ -1,6 +1,14 @@
 export function LiveStream() {
+  const rows = [
+    { time: "just now", tone: "term-info", label: "[INFO]", message: "Dashboard loaded - 0 service(s) monitored" },
+    { time: "4s ago", tone: "term-info", label: "[INFO]", message: "Re-indexing shard #4 completed" },
+    { time: "8s ago", tone: "term-err", label: "[ERR]", message: "Failed to fetch metrics: Timeout" },
+    { time: "12s ago", tone: "term-warn", label: "[WARN]", message: "Throttling API request client:831..." },
+    { time: "20s ago", tone: "term-info", label: "[INFO]", message: "Auth-Service: Token verified" },
+  ];
+
   return (
-    <div className="card" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+    <div className="card flex-1">
       <div className="card-header">
         <span className="card-title">LIVE STREAM</span>
         <div className="stat-trend trend-up">
@@ -8,31 +16,13 @@ export function LiveStream() {
         </div>
       </div>
       <div className="terminal" id="live-stream-terminal">
-        <div>
-          <span className="term-time">{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          <span className="term-info">[INFO]</span>
-          Dashboard loaded – 0 service(s) monitored
-        </div>
-        <div>
-          <span className="term-time">{new Date(Date.now() - 4000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          <span className="term-info">[INFO]</span>
-          Re-indexing shard #4 completed
-        </div>
-        <div>
-          <span className="term-time">{new Date(Date.now() - 8000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          <span className="term-err">[ERR]</span>
-          Failed to fetch metrics: Timeout
-        </div>
-        <div>
-          <span className="term-time">{new Date(Date.now() - 12000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          <span className="term-warn">[WARN]</span>
-          Throttling API request client:831...
-        </div>
-        <div>
-          <span className="term-time">{new Date(Date.now() - 20000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          <span className="term-info">[INFO]</span>
-          Auth-Service: Token verified
-        </div>
+        {rows.map((row) => (
+          <div key={`${row.time}-${row.label}`}>
+            <span className="term-time">{row.time}</span>
+            <span className={row.tone}>{row.label}</span>
+            {row.message}
+          </div>
+        ))}
       </div>
     </div>
   );

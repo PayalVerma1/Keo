@@ -18,6 +18,14 @@ export function MetricCard({
   trend = "neutral",
 }: MetricCardProps) {
   const trendClass = trend === "up" ? "trend-up" : trend === "down" ? "trend-down" : "";
+  const accentClass =
+    accent === "var(--accent-red)"
+      ? "text-[var(--accent-red)]"
+      : accent === "var(--accent-yellow)"
+        ? "text-[var(--accent-yellow)]"
+        : accent === "var(--accent-green)"
+          ? "text-[var(--accent-green)]"
+          : "";
 
   return (
     <div className="card">
@@ -25,10 +33,10 @@ export function MetricCard({
         <span className="card-title">{title}</span>
         {icon}
       </div>
-      <div className="stat-value" style={accent ? { color: accent } : undefined}>
+      <div className={`stat-value ${accentClass}`}>
         {value}
       </div>
-      <div className={`stat-trend ${trendClass}`} style={trend === "neutral" ? { color: "var(--text-secondary)" } : undefined}>
+      <div className={`stat-trend ${trendClass || "text-[var(--text-secondary)]"}`}>
         {trend === "up" ? <TrendingUp size={14} /> : null}
         {trend === "down" ? <Activity size={14} /> : null}
         {subtitle}

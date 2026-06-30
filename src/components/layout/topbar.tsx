@@ -11,7 +11,7 @@ interface TopbarProps {
 export function Topbar({
   userName,
   searchPlaceholder = "Search telemetry...",
-  liveLabel = "Live – WebSockets",
+  liveLabel = "Live - WebSockets",
 }: TopbarProps) {
   const router = useRouter();
   const initial = userName?.trim().charAt(0)?.toUpperCase() ?? "U";
@@ -19,8 +19,8 @@ export function Topbar({
   return (
     <header className="topbar">
       <div className="search-box">
-        <Search size={16} color="var(--text-muted)" />
-        <input type="text" placeholder={searchPlaceholder} />
+        <Search size={16} className="text-[var(--text-muted)]" aria-hidden="true" />
+        <input type="search" placeholder={searchPlaceholder} aria-label="Search telemetry" />
       </div>
 
       <div className="topbar-actions">
@@ -39,21 +39,8 @@ export function Topbar({
           className="avatar"
           aria-label="User avatar"
           onClick={() => router.push("/profile")}
-          style={{ border: "none", padding: 0, cursor: "pointer" }}
         >
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background: "linear-gradient(45deg, #8b5cf6, #3b82f6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "12px",
-              fontWeight: 700,
-              color: "white",
-            }}
-          >
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500 to-blue-500 text-xs font-bold text-white">
             {initial}
           </div>
         </button>

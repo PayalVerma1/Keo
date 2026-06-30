@@ -37,6 +37,7 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
               href={item.href}
               id={`nav-${item.label.toLowerCase().replace(" ", "-")}`}
               className={`nav-item${isActive ? " active" : ""}`}
+              aria-current={isActive ? "page" : undefined}
               onClick={(e) => {
                 e.preventDefault();
                 router.push(item.href);
@@ -53,7 +54,7 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
           <div className="status-dot" />
           Connected
         </div>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
+        <div className="mb-4 text-xs text-[var(--text-muted)]">
           WebSocket: Live
         </div>
 
@@ -61,36 +62,18 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
           <button
             type="button"
             onClick={() => router.push("/profile")}
-            style={{
-              fontSize: "12px",
-              color: "var(--text-secondary)",
-              marginBottom: "12px",
-              fontWeight: 500,
-              background: "none",
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-              textAlign: "left",
-            }}
+            className="mb-3 min-h-10 w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-left text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
-            👤 {userName}
+            {userName}
           </button>
         )}
 
         {onLogout && (
           <button
             id="logout-btn"
+            type="button"
             onClick={onLogout}
-            className="nav-item"
-            style={{
-              padding: "8px 0",
-              color: "var(--accent-red)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-              textAlign: "left",
-            }}
+            className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-md border-0 bg-transparent py-2 text-left text-sm text-[var(--accent-red)] transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
             <LogOut size={16} /> Sign Out
           </button>

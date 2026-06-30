@@ -18,9 +18,9 @@ interface ChartCardProps {
 export function ChartCard({ title, data, color, opacity = 1 }: ChartCardProps) {
   return (
     <div className="card chart-card">
-      <div className="card-header" style={{ marginBottom: "8px" }}>
+      <div className="card-header mb-2">
         <span className="card-title">{title}</span>
-        <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Last 30m</span>
+        <span className="text-[11px] text-[var(--text-muted)]">Last 30m</span>
       </div>
       <div className="chart-wrapper">
         <ResponsiveContainer width="100%" height="100%">
@@ -45,8 +45,8 @@ export function ChartCard({ title, data, color, opacity = 1 }: ChartCardProps) {
 
 export function ChartSkeleton() {
   return (
-    <div className="card chart-card" style={{ justifyContent: "center", alignItems: "center" }}>
-      <Loader2 size={24} className="spin" color="var(--text-muted)" />
+    <div className="card chart-card items-center justify-center">
+      <Loader2 size={24} className="spin text-[var(--text-muted)]" aria-hidden="true" />
     </div>
   );
 }

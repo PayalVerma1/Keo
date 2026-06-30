@@ -24,12 +24,12 @@ interface InsightRecord {
 function InsightItem({ badge, time, title, description, actions, badgeTone = "warning" }: InsightItemProps) {
   return (
     <div className="insight-item">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="flex items-start justify-between">
         <div>
           <span className={`insight-badge ${badgeTone}`}>{badge}</span>
           <span className="insight-time">{time}</span>
         </div>
-        <AlertTriangle size={24} color="var(--text-muted)" opacity={0.3} />
+        <AlertTriangle size={24} className="text-[var(--text-muted)] opacity-30" aria-hidden="true" />
       </div>
       <div className="insight-title">{title}</div>
       <div className="insight-desc">{description}</div>
@@ -44,14 +44,11 @@ export function InsightsPanel() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     const loadInsights = async () => {
       try {
+        const token = localStorage.getItem("obs_token");
+        if (!token) return;
+
         const servicesRes = await fetch("/api/services", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -75,8 +72,8 @@ export function InsightsPanel() {
           .slice(0, 3);
 
         setInsights(latest);
-      } catch (err: any) {
-        setError(err.message || "Unable to load insights");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unable to load insights");
       } finally {
         setLoading(false);
       }
@@ -86,22 +83,22 @@ export function InsightsPanel() {
   }, []);
 
   return (
-    <div className="card" style={{ flex: 1 }}>
-      <div className="card-header" style={{ marginBottom: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <BrainCircuit size={18} color="#a5b4fc" />
-          <span style={{ fontSize: "16px", fontWeight: 600 }}>AI Insights</span>
+    <div className="card flex-1">
+      <div className="card-header mb-0">
+        <div className="flex items-center gap-2">
+          <BrainCircuit size={18} className="text-indigo-300" aria-hidden="true" />
+          <span className="text-base font-semibold">AI Insights</span>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: "24px 0" }}>
-          <Loader2 size={20} className="spin" color="var(--accent-green)" />
+        <div className="flex justify-center py-6">
+          <Loader2 size={20} className="spin text-[var(--accent-green)]" aria-hidden="true" />
         </div>
       ) : error ? (
-        <div style={{ padding: "16px 0", color: "var(--text-secondary)" }}>{error}</div>
+        <div className="py-4 text-[var(--text-secondary)]">{error}</div>
       ) : insights.length === 0 ? (
-        <div style={{ padding: "16px 0", color: "var(--text-secondary)" }}>No AI insights have been generated yet.</div>
+        <div className="py-4 text-[var(--text-secondary)]">No AI insights have been generated yet.</div>
       ) : (
         insights.map((insight) => {
           const severity = insight.severity?.toUpperCase() ?? "INFO";
@@ -110,7 +107,7 @@ export function InsightsPanel() {
 
           return (
             <InsightItem
-              key={`${insight.serviceId}-${insight.createdAt}-${insight.id ?? Math.random()}`}
+              key={insight.id ?? `${insight.serviceId}-${insight.createdAt ?? severity}`}
               badge={severity}
               time={insight.createdAt ? new Date(insight.createdAt).toLocaleString() : "Recently detected"}
               title={`${insight.serviceName ?? insight.serviceId} • ${severity.toLowerCase()}`}
