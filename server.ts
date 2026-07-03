@@ -3,8 +3,8 @@ import { createServer } from "http";
 
 loadEnvConfig(process.cwd());
 
-const port = parseInt(process.env.SOCKET_PORT || "4000", 10);
-const hostname = process.env.SOCKET_HOST || "localhost";
+const port = parseInt(process.env.PORT || process.env.SOCKET_PORT || "4000", 10);
+const hostname = process.env.SOCKET_HOST || "0.0.0.0";
 
 const startSocketServer = async () => {
   const { connectRedis } = await import("./src/lib/config/redis");
