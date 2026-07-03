@@ -39,9 +39,18 @@ jobs:
       - name: Build Socket Server
         run: pnpm run build:socket
 
+      - name: Create Azure Runtime Package
+        run: |
+          rm -rf azure-socket-package
+          mkdir azure-socket-package
+          cp package.json package-lock.json azure-socket-package/
+          cp -R dist azure-socket-package/dist
+          cd azure-socket-package
+          npm install --omit=dev --ignore-scripts
+
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: keo-socket
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: azure-socket-package
