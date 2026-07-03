@@ -36,6 +36,9 @@ jobs:
       - name: Type check
         run: pnpm exec tsc --noEmit
 
+      - name: Build Socket Server
+        run: pnpm run build:socket
+
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
