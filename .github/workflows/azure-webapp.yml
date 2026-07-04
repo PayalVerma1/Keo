@@ -45,8 +45,18 @@ jobs:
           mkdir azure-socket-package
           cp package.json package-lock.json azure-socket-package/
           cp -R dist azure-socket-package/dist
+          # Copy prisma generated client if it exists
+          if [ -d "node_modules/.prisma" ]; then
+            mkdir -p azure-socket-package/node_modules/.prisma
+            cp -R node_modules/.prisma azure-socket-package/node_modules/
+          fi
           cd azure-socket-package
           npm install --omit=dev --ignore-scripts
+          # Create a startup script so Azure runs from the correct directory
+          echo '#!/bin/sh' > startup.sh
+          echo 'cd /home/site/wwwroot' >> startup.sh
+          echo 'NODE_ENV=production node dist/server.js' >> startup.sh
+          chmod +x startup.sh
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
