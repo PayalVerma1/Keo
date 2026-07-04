@@ -6,8 +6,11 @@ import {
   Activity,
   AlertCircle,
   ArrowLeft,
+  Check,
+  Copy,
   Cpu,
   HardDrive,
+  Key,
   Loader2,
   Play,
   Zap,
@@ -96,6 +99,10 @@ export default function ServiceDetailPage() {
   const [user, setUser] = useState<{ name: string } | null>(null);
   const [socketState, setSocketState] = useState<"connecting" | "live" | "offline">("connecting");
   const [mounted, setMounted] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [generatingKey, setGeneratingKey] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   const loadTelemetry = useCallback(async (token: string) => {
     const [servicesRes, metricsRes, logsRes, deploymentsRes, insightsRes] = await Promise.all([
@@ -270,6 +277,32 @@ export default function ServiceDetailPage() {
     router.replace("/login");
   };
 
+  const copyToClipboard = (text: string, onDone: () => void) => {
+    navigator.clipboard.writeText(text).then(() => {
+      onDone();
+      setTimeout(onDone, 2000);
+    });
+  };
+
+  const handleGenerateApiKey = async () => {
+    const token = localStorage.getItem("obs_token");
+    if (!token) { router.replace("/login"); return; }
+    setGeneratingKey(true);
+    try {
+      const res = await fetch(`/api/services/${serviceId}/api-key`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to generate API key");
+      setApiKey(data.apiKey);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setGeneratingKey(false);
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -298,6 +331,64 @@ export default function ServiceDetailPage() {
                 {generating ? <Loader2 size={16} className="spin" /> : <Play size={16} />}
                 {generating ? "Generating telemetry" : "Generate test telemetry"}
               </button>
+            </div>
+          </div>
+
+          {/* ── Service ID + API Key cards ─────────────────────────────── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+            {/* Service ID */}
+            <div className="card" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div className="card-header">
+                <span className="card-title">Service ID</span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Use in SDK config</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0,0,0,0.25)", borderRadius: "8px", padding: "10px 14px", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <code style={{ flex: 1, fontSize: "12px", color: "#a5b4fc", wordBreak: "break-all", fontFamily: "monospace" }}>
+                  {serviceId}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(serviceId, () => setCopiedId((v) => !v))}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: copiedId ? "var(--accent-green)" : "var(--text-muted)", flexShrink: 0, padding: "2px", transition: "color 0.2s" }}
+                  title="Copy Service ID"
+                >
+                  {copiedId ? <Check size={15} /> : <Copy size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* API Key */}
+            <div className="card" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div className="card-header">
+                <span className="card-title">API Key</span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>For SDK authentication</span>
+              </div>
+              {apiKey ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0,0,0,0.25)", borderRadius: "8px", padding: "10px 14px", border: "1px solid rgba(46,200,133,0.25)" }}>
+                  <code style={{ flex: 1, fontSize: "12px", color: "var(--accent-green)", wordBreak: "break-all", fontFamily: "monospace", maxHeight: "48px", overflow: "hidden" }}>
+                    {apiKey}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(apiKey, () => setCopiedKey((v) => !v))}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: copiedKey ? "var(--accent-green)" : "var(--text-muted)", flexShrink: 0, padding: "2px", transition: "color 0.2s" }}
+                    title="Copy API Key"
+                  >
+                    {copiedKey ? <Check size={15} /> : <Copy size={15} />}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={handleGenerateApiKey}
+                  disabled={generatingKey}
+                  style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}
+                >
+                  {generatingKey ? <Loader2 size={14} className="spin" /> : <Key size={14} />}
+                  {generatingKey ? "Generating…" : "Generate API Key"}
+                </button>
+              )}
             </div>
           </div>
 
