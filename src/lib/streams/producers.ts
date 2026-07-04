@@ -1,9 +1,10 @@
-import { client } from "../config/redis";
+import { client, connectRedis } from "../config/redis";
 import { STREAMS } from "./redis-streams";
 
 type StreamPayload = Record<string, unknown>;
 
 const addToStream = async (stream: string, payload: StreamPayload) => {
+  await connectRedis();
   return client.sendCommand([
     "XADD",
     stream,

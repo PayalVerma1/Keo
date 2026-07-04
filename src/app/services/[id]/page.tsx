@@ -23,7 +23,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { io, Socket } from "socket.io-client";
+import { socket as sharedSocket } from "@/lib/socket";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
@@ -69,7 +69,7 @@ interface Insight {
   createdAt?: string;
 }
 
-const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+
 
 const authHeaders = (token: string) => ({
   "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export default function ServiceDetailPage() {
     let socket: Socket | null = null;
 
     try {
-      socket = io(socketUrl, { transports: ["websocket"] });
+      socket = sharedSocket;
       socket.on("connect", () => {
         setSocketState("live");
         socket?.emit("service:join", serviceId);
@@ -174,7 +174,13 @@ export default function ServiceDetailPage() {
 
     return () => {
       socket?.emit("service:left", serviceId);
-      socket?.disconnect();
+      socket?.off("connect");
+      socket?.off("disconnect");
+      socket?.off("connect_error");
+      socket?.off("metric:created");
+      socket?.off("log:created");
+      socket?.off("deployment:created");
+      socket?.off("anomaly:detected");
     };
   }, [mounted, serviceId]);
 

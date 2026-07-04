@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { socket as sharedSocket } from "@/lib/socket";
 import { Layers, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -28,7 +29,7 @@ interface DashboardData {
   };
 }
 
-const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
@@ -105,7 +106,7 @@ export default function Dashboard() {
 
     fetchDashboard(token);
 
-    const socket = io(socketUrl, { transports: ["websocket"] });
+    const socket = sharedSocket;
     socketRef.current = socket;
     setSocketState("connecting");
 
@@ -128,7 +129,13 @@ export default function Dashboard() {
     socket.on("anomaly:detected", refreshFromSocket);
 
     return () => {
-      socket.disconnect();
+      socket.off("metric:created", refreshFromSocket);
+      socket.off("log:created", refreshFromSocket);
+      socket.off("deployment:created", refreshFromSocket);
+      socket.off("anomaly:detected", refreshFromSocket);
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
       socketRef.current = null;
       joinedServicesRef.current = [];
     };
