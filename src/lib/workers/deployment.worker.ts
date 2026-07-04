@@ -30,8 +30,10 @@ export const startDeploymentWorker = async () => {
 
     if (!res) continue;
 
-    const streams = res as unknown as any[];
-    for (const [, messages] of streams) {
+    // redis v4 returns XREADGROUP as a Map<streamName, [id, fields[]][]>
+    const streamMap = res as unknown as Map<string, [string, string[]][]>;
+    for (const [, messages] of streamMap.entries()) {
+      if (!messages) continue;
       for (const [messageID, fields] of messages) {
         try {
           const payloadIndex = (fields as string[]).indexOf("payload");
