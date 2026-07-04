@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": false,
+    "incremental": false,
+    "isolatedModules": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": ".",
+    "target": "ES2020"
+  },
+  "include": [
+    "src/lib/config/**/*.ts",
+    "src/lib/modules/deployments/**/*.ts",
+    "src/lib/modules/logs/**/*.ts",
+    "src/lib/modules/metrics/**/*.ts",
+    "src/lib/modules/websocket/realtime-bus.ts",
+    "src/lib/modules/websocket/socket.events.ts",
+    "src/lib/streams/**/*.ts",
+    "src/lib/workers/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

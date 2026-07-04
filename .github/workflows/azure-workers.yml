@@ -1,0 +1,56 @@
+name: Deploy Workers to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm exec prisma generate
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Build Workers
+        run: pnpm run build:workers
+
+      - name: Create Azure Runtime Package
+        run: |
+          rm -rf azure-workers-package
+          mkdir azure-workers-package
+          cp package.json package-lock.json azure-workers-package/
+          cp -R dist azure-workers-package/dist
+          cd azure-workers-package
+          npm install --omit=dev --ignore-scripts
+
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: keo-workers
+          publish-profile: ${{ secrets.AZURE_WORKERS_PUBLISH_PROFILE }}
+          package: azure-workers-package
