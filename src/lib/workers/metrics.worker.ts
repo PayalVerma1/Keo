@@ -9,10 +9,11 @@ const CONSUMER_NAME = `metrics-consumer-${process.pid}`;
 
 const ensureGroup = async () => {
   try {
-    await client.sendCommand([
-      "XGROUP", "CREATE", STREAMS.METRICS, GROUP_NAME, "0", "MKSTREAM",
-    ]);
+    await client.xGroupCreate(STREAMS.METRICS, GROUP_NAME, "0", {
+      MKSTREAM: true,
+    });
   } catch (error: any) {
+    // BUSYGROUP means group already exists — that's fine
     if (!String(error.message).includes("BUSYGROUP")) throw error;
   }
 };
@@ -22,22 +23,19 @@ export const startMetricsWorker = async () => {
   console.log("Metrics worker started");
 
   while (true) {
-    const res = await client.sendCommand([
-      "XREADGROUP", "GROUP", GROUP_NAME, CONSUMER_NAME,
-      "BLOCK", "500", "COUNT", "10",
-      "STREAMS", STREAMS.METRICS, ">",
-    ]);
+    const res = await client.xReadGroup(
+      GROUP_NAME,
+      CONSUMER_NAME,
+      [{ key: STREAMS.METRICS, id: ">" }],
+      { COUNT: 10, BLOCK: 500 }
+    );
 
     if (!res) continue;
 
-    // redis v4 returns XREADGROUP as a Map<streamName, [id, fields[]][]>
-    const streamMap = res as unknown as Map<string, [string, string[]][]>;
-    for (const [, messages] of streamMap.entries()) {
-      if (!messages) continue;
-      for (const [messageID, fields] of messages) {
+    for (const { messages } of res) {
+      for (const { id: messageID, message } of messages) {
         try {
-          const payloadIndex = (fields as string[]).indexOf("payload");
-          const payload = JSON.parse((fields as string[])[payloadIndex + 1]);
+          const payload = JSON.parse(message["payload"]);
           const metric = await metricsService.createMetric(payload);
 
           await publishRealtimeEvent(
@@ -46,9 +44,7 @@ export const startMetricsWorker = async () => {
             metric
           );
 
-          await client.sendCommand([
-            "XACK", STREAMS.METRICS, GROUP_NAME, messageID,
-          ]);
+          await client.xAck(STREAMS.METRICS, GROUP_NAME, messageID);
         } catch (err) {
           console.error("Failed to process metric event:", err);
         }
