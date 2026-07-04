@@ -1,4 +1,4 @@
-import { client } from "../../config/redis";
+import { client, connectRedis } from "../../config/redis";
 
 export const REALTIME_CHANNEL = "observability:realtime";
 
@@ -22,6 +22,7 @@ export const publishRealtimeEvent = async (
 export const subscribeRealtimeEvents = async (
   onMessage: (message: RealtimeMessage) => void
 ) => {
+  await connectRedis(); // ensure base client is connected before duplicating
   const subscriber = client.duplicate();
   await subscriber.connect();
 
