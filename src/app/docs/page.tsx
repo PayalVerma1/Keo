@@ -20,7 +20,7 @@ interface DashboardSummary {
 }
 
 const CODE_INIT = [
-  'import { Monitor } from "@keo/monitor-sdk";',
+  'import { Monitor } from "@keo-platform/monitor-sdk";',
   "",
   "const monitor = new Monitor({",
   '  apiKey: "YOUR_SERVICE_API_KEY",   // Dashboard > Services > API Key',
@@ -66,7 +66,7 @@ const CODE_SHUTDOWN = [
 
 const CODE_FULL = [
   'import express from "express";',
-  'import { Monitor } from "@keo/monitor-sdk";',
+  'import { Monitor } from "@keo-platform/monitor-sdk";',
   "",
   "const monitor = new Monitor({",
   "  apiKey: process.env.KEO_API_KEY! ,",
@@ -336,7 +336,7 @@ export default function DocsPage() {
                 <div className="docs-chip">Developer Documentation</div>
                 <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Keo SDK</h1>
                 <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "680px" }}>
-                  The <InlineCode>@keo/monitor-sdk</InlineCode> lets you instrument any Node.js app in minutes — metrics, logs, and deployments automatically flow into your observability dashboard.
+                  The <InlineCode>@keo-platform/monitor-sdk</InlineCode> lets you instrument any Node.js app in minutes — metrics, logs, and deployments automatically flow into your observability dashboard.
                 </p>
               </div>
 
@@ -393,7 +393,7 @@ export default function DocsPage() {
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
                   Install via your preferred package manager:
                 </p>
-                <CodeBlock code={`# npm\nnpm install @keo/monitor-sdk\n\n# yarn\nyarn add @keo/monitor-sdk\n\n# pnpm\npnpm add @keo/monitor-sdk`} language="bash" />
+                <CodeBlock code={`# npm\nnpm install @keo-platform/monitor-sdk\n\n# yarn\nyarn add @keo-platform/monitor-sdk\n\n# pnpm\npnpm add @keo-platform/monitor-sdk`} language="bash" />
               </Section>
 
               <Section id="config" title="Configuration">

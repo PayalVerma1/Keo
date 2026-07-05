@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Socket } from "socket.io-client";
 import { socket as sharedSocket } from "@/lib/socket";
-import { Layers, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { ServiceMetricCards } from "@/components/dashboard/metric-card";
@@ -151,7 +151,7 @@ export default function Dashboard() {
 
   return (
     <div className="layout-wrapper">
-      <Sidebar onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
 
       <main className="main-content">
         <Topbar userName={user?.name} />
@@ -191,54 +191,7 @@ export default function Dashboard() {
                 <EmptyMetricsState />
               )}
 
-              {data && data.summary.totalServices > 0 && (
-                <div className="card">
-                  <div className="card-header">
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Layers size={18} color="var(--text-secondary)" />
-                      <span style={{ fontSize: "16px", fontWeight: 600 }}>
-                        Regional Infrastructure Status
-                      </span>
-                    </div>
-                    <div className="legend">
-                      <div className="legend-item">
-                        <div className="status-dot" /> Operational
-                      </div>
-                      <div className="legend-item">
-                        <div className="status-dot" style={{ backgroundColor: "var(--accent-yellow)", boxShadow: "none" }} /> Degraded
-                      </div>
-                      <div className="legend-item">
-                        <div className="status-dot" style={{ backgroundColor: "var(--accent-red)", boxShadow: "none" }} /> Outage
-                      </div>
-                    </div>
-                  </div>
-                  <div className="infra-grid">
-                    {[
-                      { name: "us-east-1", load: 12.4, status: "normal" },
-                      { name: "us-west-2", load: 4.2, status: "normal" },
-                      { name: "eu-central-1", load: 95.8, status: "critical" },
-                      { name: "ap-northeast-1", load: 2.1, status: "normal" },
-                      { name: "sa-east-1", load: 8.9, status: "normal" },
-                      { name: "af-south-1", load: 1.2, status: "normal" },
-                    ].map((region) => (
-                      <div className="region-card" key={region.name}>
-                        <div className="region-header">
-                          <span className="region-name">{region.name}</span>
-                          {region.status === "normal" ? (
-                            <CheckCircle2 size={14} color="var(--accent-green)" />
-                          ) : (
-                            <AlertTriangle size={14} color="var(--accent-yellow)" />
-                          )}
-                        </div>
-                        <div className="load-bar-bg">
-                          <div className={`load-bar-fill ${region.status}`} style={{ width: `${region.load}%` }} />
-                        </div>
-                        <div className="region-load">Load: {region.load.toFixed(1)}%</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
             </div>
 
             <div className="right-sidebar">

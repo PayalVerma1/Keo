@@ -27,6 +27,7 @@ type SidebarProps = {
   userName?: string;
   onLogout?: () => void;
   variant?: "default" | "compact";
+  socketState?: "live" | "connecting" | "offline";
 };
 
 export function AppSidebar({
@@ -34,6 +35,7 @@ export function AppSidebar({
   userName = "",
   onLogout,
   variant = "default",
+  socketState,
 }: SidebarProps) {
   const router = useRouter();
 
@@ -47,7 +49,7 @@ export function AppSidebar({
             <span style={{ fontSize: 11, fontWeight: 700, color: "#2ee59d" }}>Connected</span>
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
-            WebSocket: Live
+            WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
           </div>
         </div>
 
@@ -122,7 +124,7 @@ export function AppSidebar({
           Connected
         </div>
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
-          WebSocket: Live
+          WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
         </div>
 
         {userName && (

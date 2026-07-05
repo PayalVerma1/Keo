@@ -7,9 +7,10 @@ interface SidebarProps {
   onLogout?: () => void;
   userName?: string;
   activePath?: string;
+  socketState?: "live" | "connecting" | "offline";
 }
 
-export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
+export function Sidebar({ onLogout, userName = "", activePath, socketState }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const currentPath = activePath ?? pathname ?? "/";
@@ -51,11 +52,21 @@ export function Sidebar({ onLogout, userName = "", activePath }: SidebarProps) {
 
       <div className="sidebar-footer">
         <div className="status-indicator">
-          <div className="status-dot" />
-          Connected
+          <div
+            className="status-dot"
+            style={{
+              background:
+                socketState === "live"
+                  ? "var(--accent-green)"
+                  : socketState === "offline"
+                  ? "var(--accent-red)"
+                  : "var(--accent-yellow)",
+            }}
+          />
+          {socketState === "live" ? "Connected" : socketState === "offline" ? "Disconnected" : "Connecting…"}
         </div>
         <div className="mb-4 text-xs text-[var(--text-muted)]">
-          WebSocket: Live
+          WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
         </div>
 
         {userName && (

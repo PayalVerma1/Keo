@@ -8,7 +8,8 @@ import { Topbar } from "@/components/layout/topbar";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+  const [user, setUser] = useState<{ name?: string; email?: string; createdAt?: string } | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("obs_token");
@@ -17,14 +18,31 @@ export default function ProfilePage() {
       return;
     }
 
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {}
-    }
+    // Always fetch fresh from API so profile data is never stale
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem("obs_token");
+          localStorage.removeItem("obs_user");
+          router.replace("/login");
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setUser(data);
+      })
+      .catch(() => {
+        // fallback to localStorage
+        const storedUser = localStorage.getItem("obs_user");
+        if (storedUser) {
+          try { setUser(JSON.parse(storedUser)); } catch {}
+        }
+      })
+      .finally(() => setLoadingUser(false));
   }, [router]);
-
   const handleLogout = () => {
     localStorage.removeItem("obs_token");
     localStorage.removeItem("obs_user");
@@ -81,12 +99,14 @@ export default function ProfilePage() {
                   <div className="card" style={{ padding: "14px 16px" }}>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Account status</div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
-                      <CheckCircle2 size={16} color="var(--accent-green)" /> Active and verified
+                      <CheckCircle2 size={16} color="var(--accent-green)" /> Active
                     </div>
                   </div>
                   <div className="card" style={{ padding: "14px 16px" }}>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Workspace role</div>
-                    <div style={{ fontWeight: 600 }}>Owner</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Member since</div>
+                    <div style={{ fontWeight: 600 }}>
+                      {loadingUser ? "…" : user?.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—"}
+                    </div>
                   </div>
                 </div>
               </div>
