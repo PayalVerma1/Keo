@@ -73,8 +73,6 @@ interface Insight {
   createdAt?: string;
 }
 
-
-
 const authHeaders = (token: string) => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${token}`,

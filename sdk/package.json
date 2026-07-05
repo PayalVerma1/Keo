@@ -1,7 +1,10 @@
 {
-  "name": "@keo/monitor-sdk",
+  "name": "@keo-platform/monitor-sdk",
   "version": "1.0.0",
   "description": "Official SDK for integrating services with the Keo observability platform",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
