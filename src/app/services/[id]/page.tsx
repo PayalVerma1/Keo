@@ -227,7 +227,7 @@ export default function ServiceDetailPage() {
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
         <Topbar userName={user?.name} />
 

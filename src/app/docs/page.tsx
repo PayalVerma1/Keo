@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Copy } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useSocketState } from "@/lib/useSocketState";
 import { Topbar } from "@/components/layout/topbar";
 
 interface ServiceSummary {
@@ -305,11 +306,13 @@ export default function DocsPage() {
     router.replace("/login");
   };
 
+  const socketState = useSocketState();
+
   if (!mounted) return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/docs" onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar activePath="/docs" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
         <Topbar userName={user?.name} />
         <div className="dashboard-scroll-area">
