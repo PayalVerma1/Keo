@@ -25,8 +25,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { type Socket } from "socket.io-client";
 import { socket as sharedSocket } from "@/lib/socket";
+import { useSocketState } from "@/lib/useSocketState";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
@@ -87,7 +87,7 @@ export default function ServiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [user, setUser] = useState<{ name: string } | null>(null);
-  const [socketState, setSocketState] = useState<"connecting" | "live" | "offline">("connecting");
+  const socketState = useSocketState();
   const [mounted, setMounted] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [generatingKey, setGeneratingKey] = useState(false);
@@ -144,41 +144,37 @@ export default function ServiceDetailPage() {
   useEffect(() => {
     if (!serviceId || !mounted) return;
 
-    let socket: Socket | null = null;
+    const socket = sharedSocket;
 
-    try {
-      socket = sharedSocket;
-      socket.on("connect", () => {
-        setSocketState("live");
-        socket?.emit("service:join", serviceId);
-      });
-      socket.on("disconnect", () => setSocketState("offline"));
-      socket.on("connect_error", () => setSocketState("offline"));
-      socket.on("metric:created", (metric: Metric) => {
-        setMetrics((current) => [...current, metric].slice(-80));
-      });
-      socket.on("log:created", (log: LogEntry) => {
-        setLogs((current) => [log, ...current].slice(0, 80));
-      });
-      socket.on("deployment:created", (deployment: Deployment) => {
-        setDeployments((current) => [deployment, ...current].slice(0, 20));
-      });
-      socket.on("anomaly:detected", (insight: Insight) => {
-        setInsights((current) => [insight, ...current].slice(0, 20));
-      });
-    } catch {
-      setSocketState("offline");
+    // If socket is already connected, join the room immediately
+    if (socket.connected) {
+      socket.emit("service:join", serviceId);
     }
 
+    // Also join on future reconnects
+    const onConnect = () => socket.emit("service:join", serviceId);
+    socket.on("connect", onConnect);
+
+    socket.on("metric:created", (metric: Metric) => {
+      setMetrics((current) => [...current, metric].slice(-80));
+    });
+    socket.on("log:created", (log: LogEntry) => {
+      setLogs((current) => [log, ...current].slice(0, 80));
+    });
+    socket.on("deployment:created", (deployment: Deployment) => {
+      setDeployments((current) => [deployment, ...current].slice(0, 20));
+    });
+    socket.on("anomaly:detected", (insight: Insight) => {
+      setInsights((current) => [insight, ...current].slice(0, 20));
+    });
+
     return () => {
-      socket?.emit("service:left", serviceId);
-      socket?.off("connect");
-      socket?.off("disconnect");
-      socket?.off("connect_error");
-      socket?.off("metric:created");
-      socket?.off("log:created");
-      socket?.off("deployment:created");
-      socket?.off("anomaly:detected");
+      socket.emit("service:left", serviceId);
+      socket.off("connect", onConnect);
+      socket.off("metric:created");
+      socket.off("log:created");
+      socket.off("deployment:created");
+      socket.off("anomaly:detected");
     };
   }, [mounted, serviceId]);
 

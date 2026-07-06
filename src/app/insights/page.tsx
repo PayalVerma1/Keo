@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, AlertTriangle, BrainCircuit, Layers, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useSocketState } from "@/lib/useSocketState";
 import { Topbar } from "@/components/layout/topbar";
 
 interface Service {
@@ -88,11 +89,13 @@ export default function InsightsPage() {
     router.replace("/login");
   };
 
+  const socketState = useSocketState();
+
   if (!mounted) return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/insights" onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar activePath="/insights" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
         <Topbar userName={user?.name} />
         <div className="dashboard-scroll-area">

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Socket } from "socket.io-client";
 import { socket as sharedSocket } from "@/lib/socket";
+import { useSocketState } from "@/lib/useSocketState";
 import { Activity } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -39,7 +40,7 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [data, setData] = useState<DashboardData | null>(null);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [socketState, setSocketState] = useState<"connecting" | "live" | "offline">("connecting");
+  const socketState = useSocketState();
   const socketRef = useRef<Socket | null>(null);
   const joinedServicesRef = useRef<string[]>([]);
 
@@ -108,19 +109,10 @@ export default function Dashboard() {
 
     const socket = sharedSocket;
     socketRef.current = socket;
-    setSocketState("connecting");
-
-    socket.on("connect", () => {
-      setSocketState("live");
-    });
-    socket.on("disconnect", () => setSocketState("offline"));
-    socket.on("connect_error", () => setSocketState("offline"));
 
     const refreshFromSocket = () => {
       const currentToken = localStorage.getItem("obs_token");
-      if (currentToken) {
-        fetchDashboard(currentToken);
-      }
+      if (currentToken) fetchDashboard(currentToken);
     };
 
     socket.on("metric:created", refreshFromSocket);
@@ -133,9 +125,6 @@ export default function Dashboard() {
       socket.off("log:created", refreshFromSocket);
       socket.off("deployment:created", refreshFromSocket);
       socket.off("anomaly:detected", refreshFromSocket);
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("connect_error");
       socketRef.current = null;
       joinedServicesRef.current = [];
     };

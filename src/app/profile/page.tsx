@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BellRing, CheckCircle2, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useSocketState } from "@/lib/useSocketState";
 import { Topbar } from "@/components/layout/topbar";
 
 export default function ProfilePage() {
@@ -49,6 +50,8 @@ export default function ProfilePage() {
     router.replace("/login");
   };
 
+  const socketState = useSocketState();
+
   const initials = (user?.name ?? "User")
     .split(" ")
     .map((part) => part[0])
@@ -58,7 +61,7 @@ export default function ProfilePage() {
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/profile" onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar activePath="/profile" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
         <Topbar userName={user?.name} liveLabel="Live – WebSocket" />
         <div className="dashboard-scroll-area">
