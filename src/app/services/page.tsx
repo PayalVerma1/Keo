@@ -7,6 +7,7 @@ import {
   CheckCircle2, ChevronRight, Loader2
 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useSocketState } from "@/lib/useSocketState";
 import { Topbar } from "@/components/layout/topbar";
 
 interface Service {
@@ -92,11 +93,13 @@ export default function ServicesPage() {
     router.replace("/login");
   };
 
+  const socketState = useSocketState();
+
   if (!mounted) return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
         <Topbar userName={user?.name} />
 
