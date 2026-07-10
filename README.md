@@ -27,54 +27,7 @@ Keo helps you:
 
 The diagram below follows the architecture in your reference image and maps it to the current codebase.
 
-```mermaid
-flowchart TB
-	subgraph C[Client Ecosystem]
-		A[Client Applications] --> B[Monitoring Agent SDK\n(Metrics, Logs, Events)]
-	end
-
-	B -->|Telemetry Data| D[Event Ingestion API\n(Node / Next.js)]
-	D -->|Validate & Route| E[Redis Streams\n(Message Broker)]
-
-	subgraph P[Stream Processing]
-		F[Metrics Worker\n(Aggregation)]
-		G[Log Worker\n(Embedding Gen)]
-		H[Deployment Worker\n(Release Tracking)]
-		I[Anomaly Worker\n(Insight Generation)]
-	end
-
-	E -->|metrics-stream| F
-	E -->|logs-stream| G
-	E -->|deployment-stream| H
-	E -->|metrics/log context| I
-
-	subgraph S[Persistence Layer]
-		J[(PostgreSQL\n(Metadata / Metrics / Logs))]
-	end
-
-	F --> J
-	G --> J
-	H --> J
-	I --> J
-
-	subgraph AI[AI & Analytics Engine]
-		K[AI Analysis Engine\n(LLM / ML)]
-		L[Insights Service\n(Logic)]
-	end
-
-	J -->|Metric + Log Context| K
-	K -->|Analysis Results| L
-
-	subgraph DLV[API & Delivery]
-		M[WebSocket Hub\n(Real-time)]
-		N[REST API Service\n(Queries)]
-	end
-
-	L -->|Push Alerts| M
-	L -->|Store Insights| N
-	M -->|Real-time Updates| O[React Dashboard\n(Frontend)]
-	N -->|Dashboard Data| O
-```
+![Keo architecture diagram](./img.png)
 
 ## Stack And Technologies
 
@@ -181,6 +134,4 @@ From the `sdk/` directory:
 - The dashboard reflects telemetry that your application sends to Keo.
 - AI insight generation is part of the Keo platform experience.
 
-## License
 
-MIT
