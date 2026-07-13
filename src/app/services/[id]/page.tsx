@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   Activity,
   AlertCircle,
@@ -76,6 +77,7 @@ interface Insight {
 
 export default function ServiceDetailPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const params = useParams();
   const serviceId = params?.id as string;
 
@@ -86,25 +88,22 @@ export default function ServiceDetailPage() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
   const socketState = useSocketState();
-  const [mounted, setMounted] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
 
-  const loadTelemetry = useCallback(async (token: string) => {
+  const loadTelemetry = useCallback(async () => {
     const [servicesRes, metricsRes, logsRes, deploymentsRes, insightsRes] = await Promise.all([
-      fetch("/api/services", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`/api/services/${serviceId}/metrics`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`/api/logs/${serviceId}`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`/api/deployments/${serviceId}`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`/api/insights/${serviceId}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("/api/services"),
+      fetch(`/api/services/${serviceId}/metrics`),
+      fetch(`/api/logs/${serviceId}`),
+      fetch(`/api/deployments/${serviceId}`),
+      fetch(`/api/insights/${serviceId}`),
     ]);
 
     if (servicesRes.status === 401) {
-      localStorage.removeItem("obs_token");
       router.replace("/login");
       return;
     }
@@ -122,27 +121,19 @@ export default function ServiceDetailPage() {
   }, [router, serviceId]);
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {}
-    }
-
-    loadTelemetry(token)
-      .catch((nextError) => setError(nextError instanceof Error ? nextError.message : "Telemetry load failed."))
-      .finally(() => setLoading(false));
-  }, [loadTelemetry, router]);
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
   useEffect(() => {
-    if (!serviceId || !mounted) return;
+    if (status !== "authenticated") return;
+
+    loadTelemetry()
+      .catch((nextError) => setError(nextError instanceof Error ? nextError.message : "Telemetry load failed."))
+      .finally(() => setLoading(false));
+  }, [status, loadTelemetry]);
+
+  useEffect(() => {
+    if (!serviceId || status !== "authenticated") return;
 
     const socket = sharedSocket;
 
@@ -176,7 +167,7 @@ export default function ServiceDetailPage() {
       socket.off("deployment:created");
       socket.off("anomaly:detected");
     };
-  }, [mounted, serviceId]);
+  }, [status, serviceId]);
 
 
   const chartData = useMemo(() => metrics.slice(-30).map((metric) => ({
@@ -191,11 +182,7 @@ export default function ServiceDetailPage() {
   const latest = metrics.at(-1);
   const latestInsight = insights[0];
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
 
   const copyToClipboard = (text: string, onDone: () => void) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -205,13 +192,11 @@ export default function ServiceDetailPage() {
   };
 
   const handleGenerateApiKey = async () => {
-    const token = localStorage.getItem("obs_token");
-    if (!token) { router.replace("/login"); return; }
+    if (status !== "authenticated") { router.replace("/login"); return; }
     setGeneratingKey(true);
     try {
       const res = await fetch(`/api/services/${serviceId}/api-key`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to generate API key");
@@ -223,13 +208,13 @@ export default function ServiceDetailPage() {
     }
   };
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
 
         <div className="dashboard-scroll-area">
           <div className="page-hero">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   Layers, Plus, Activity, Clock,
   CheckCircle2, ChevronRight, Loader2
@@ -19,32 +20,26 @@ interface Service {
 
 export default function ServicesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newService, setNewService] = useState({ name: "", description: "" });
   const [creating, setCreating] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-    fetchServices(token);
-  }, [router]);
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
-  const fetchServices = async (token: string) => {
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetchServices();
+  }, [status]);
+
+  const fetchServices = async () => {
     try {
-      const res = await fetch("/api/services", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/services");
       if (!res.ok) throw new Error("Failed to fetch services");
       const data = await res.json();
       setServices(data);
@@ -58,14 +53,10 @@ export default function ServicesPage() {
   const handleCreateService = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
-    const token = localStorage.getItem("obs_token");
     try {
       const res = await fetch("/api/services", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newService),
       });
       if (!res.ok) {
@@ -79,7 +70,7 @@ export default function ServicesPage() {
         router.push(`/services/${data.service.id}`);
         return;
       }
-      fetchServices(token!);
+      fetchServices();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -87,21 +78,16 @@ export default function ServicesPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
-
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
   const socketState = useSocketState();
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/services" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar activePath="/services" onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
 
         <div className="dashboard-scroll-area">
           {/* Page header */}

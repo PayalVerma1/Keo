@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 
 interface LogRow {
@@ -39,19 +37,12 @@ export function LiveStream() {
   useEffect(() => {
     const load = async () => {
       try {
-        const token = localStorage.getItem("obs_token");
-        if (!token) return;
-
-        const servicesRes = await fetch("/api/services", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const servicesRes = await fetch("/api/services");
         if (!servicesRes.ok) return;
         const services = (await servicesRes.json()) as Array<{ id: string; name: string }>;
 
         const logRequests = services.map(async (service) => {
-          const res = await fetch(`/api/logs/${service.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await fetch(`/api/logs/${service.id}`);
           if (!res.ok) return [] as LogRow[];
           const entries = (await res.json()) as Array<{
             level: string;
@@ -73,14 +64,7 @@ export function LiveStream() {
         const all = (await Promise.all(logRequests)).flat();
 
         // sort newest first, take top 20
-        const sorted = all
-          .slice()
-          .sort((a, b) => {
-            // rows already have relative time strings — re-sort by message index isn't ideal,
-            // but entries come back newest-first from the API, so flat order works.
-            return 0;
-          })
-          .slice(0, 20);
+        const sorted = all.slice(0, 20);
 
         setRows(sorted);
       } catch {

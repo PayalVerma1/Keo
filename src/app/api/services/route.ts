@@ -3,7 +3,7 @@ import { verifyAuth } from "@/lib/middleware/auth";
 import * as serviceService from "@/lib/modules/services/service.service";
 
 export async function POST(req: NextRequest) {
-  const auth = verifyAuth(req);
+  const auth = await verifyAuth(req);
   if ("error" in auth) return auth.error;
 
   try {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = verifyAuth(req);
+  const auth = await verifyAuth(req);
   if ("error" in auth) return auth.error;
 
   try {

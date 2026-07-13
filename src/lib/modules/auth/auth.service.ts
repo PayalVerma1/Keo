@@ -41,6 +41,8 @@ export const login = async (data: { email: string; password: string }) => {
 
   if (!user) throw new Error("User not found");
 
+  if (!user.password) throw new Error("This account uses OAuth sign-in. Please sign in with Google or GitHub.");
+
   const isPassword = await bcrypt.compare(data.password, user.password);
 
   if (!isPassword) throw new Error("Invalid credentials");

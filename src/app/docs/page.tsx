@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { CheckCircle2, Copy } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSocketState } from "@/lib/useSocketState";
@@ -238,8 +239,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
 
 export default function DocsPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const { data: session, status } = useSession();
   const [services, setServices] = useState<ServiceSummary[]>([]);
   const [summary, setSummary] = useState<DashboardSummary>({
     totalServices: 0,
@@ -251,29 +251,17 @@ export default function DocsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {}
-    }
+  useEffect(() => {
+    if (status !== "authenticated") return;
 
     const loadDocsData = async () => {
       try {
         const [servicesRes, metricsRes] = await Promise.all([
-          fetch("/api/services", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/dashboard/metrics", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          fetch("/api/services"),
+          fetch("/api/dashboard/metrics"),
         ]);
 
         if (!servicesRes.ok) throw new Error("Failed to load services");
@@ -299,23 +287,18 @@ export default function DocsPage() {
     };
 
     loadDocsData();
-  }, [router]);
+  }, [status]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
-
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
   const socketState = useSocketState();
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/docs" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar activePath="/docs" onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
         <div className="dashboard-scroll-area">
           <div style={{ maxWidth: "1200px", margin: "0 auto", width: "100%", paddingBottom: "40px" }}>
             <style>{`

@@ -18,7 +18,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = verifyAuth(req);
+  const auth = await verifyAuth(req);
   if ("error" in auth) return auth.error;
 
   const { id: serviceId } = await params;

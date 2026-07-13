@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { AlertTriangle, Activity, Clock, FileText, Layers, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSocketState } from "@/lib/useSocketState";
@@ -24,41 +25,28 @@ interface LogEntry {
 
 export default function LogsPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const { data: session, status } = useSession();
   const [services, setServices] = useState<Service[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {}
-    }
+  useEffect(() => {
+    if (status !== "authenticated") return;
 
     const loadLogs = async () => {
       try {
-        const servicesRes = await fetch("/api/services", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const servicesRes = await fetch("/api/services");
         if (!servicesRes.ok) throw new Error("Failed to load services");
         const serviceList = (await servicesRes.json()) as Service[];
         setServices(serviceList);
 
         const logRequests = serviceList.map(async (service) => {
-          const res = await fetch(`/api/logs/${service.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await fetch(`/api/logs/${service.id}`);
           if (!res.ok) return [] as LogEntry[];
           const entries = (await res.json()) as Array<Omit<LogEntry, "serviceName">>;
           return entries.map((entry) => ({ ...entry, serviceId: service.id, serviceName: service.name }));
@@ -74,7 +62,7 @@ export default function LogsPage() {
     };
 
     loadLogs();
-  }, [router]);
+  }, [status]);
 
   const summary = useMemo(() => {
     const total = logs.length;
@@ -83,21 +71,16 @@ export default function LogsPage() {
     return { total, errors, warnings };
   }, [logs]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
-
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
   const socketState = useSocketState();
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/logs" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar activePath="/logs" onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
         <div className="dashboard-scroll-area">
           <div className="page-hero">
             <div className="page-title-wrap">

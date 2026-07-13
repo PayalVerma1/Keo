@@ -46,20 +46,13 @@ export function InsightsPanel() {
   useEffect(() => {
     const loadInsights = async () => {
       try {
-        const token = localStorage.getItem("obs_token");
-        if (!token) return;
-
-        const servicesRes = await fetch("/api/services", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const servicesRes = await fetch("/api/services");
 
         if (!servicesRes.ok) throw new Error("Failed to load services");
         const services = (await servicesRes.json()) as Array<{ id: string; name: string }>;
 
         const insightRequests = services.map(async (service) => {
-          const res = await fetch(`/api/insights/${service.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await fetch(`/api/insights/${service.id}`);
           if (!res.ok) return [] as InsightRecord[];
           const entries = (await res.json()) as Array<Omit<InsightRecord, "serviceName">>;
           return entries.map((entry) => ({ ...entry, serviceId: service.id, serviceName: service.name }));

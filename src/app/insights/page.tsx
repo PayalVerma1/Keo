@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Activity, AlertTriangle, BrainCircuit, Layers, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSocketState } from "@/lib/useSocketState";
@@ -25,41 +26,28 @@ interface Insight {
 
 export default function InsightsPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const { data: session, status } = useSession();
   const [services, setServices] = useState<Service[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {}
-    }
+  useEffect(() => {
+    if (status !== "authenticated") return;
 
     const loadInsights = async () => {
       try {
-        const servicesRes = await fetch("/api/services", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const servicesRes = await fetch("/api/services");
         if (!servicesRes.ok) throw new Error("Failed to load services");
         const serviceList = (await servicesRes.json()) as Service[];
         setServices(serviceList);
 
         const insightRequests = serviceList.map(async (service) => {
-          const res = await fetch(`/api/insights/${service.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await fetch(`/api/insights/${service.id}`);
           if (!res.ok) return [] as Insight[];
           const entries = (await res.json()) as Array<Omit<Insight, "serviceName">>;
           return entries.map((entry) => ({ ...entry, serviceId: service.id, serviceName: service.name }));
@@ -75,7 +63,7 @@ export default function InsightsPage() {
     };
 
     loadInsights();
-  }, [router]);
+  }, [status]);
 
   const summary = useMemo(() => ({
     total: insights.length,
@@ -83,21 +71,16 @@ export default function InsightsPage() {
     warning: insights.filter((item) => item.severity?.toLowerCase() === "warning").length,
   }), [insights]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
-
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
   const socketState = useSocketState();
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar activePath="/insights" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar activePath="/insights" onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
         <div className="dashboard-scroll-area">
           <div className="page-hero">
             <div className="page-title-wrap">

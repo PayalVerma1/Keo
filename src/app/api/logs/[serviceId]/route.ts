@@ -6,7 +6,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ serviceId: string }> }
 ) {
-  const auth = verifyAuth(req);
+  const auth = await verifyAuth(req);
   if ("error" in auth) return auth.error;
 
   try {

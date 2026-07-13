@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Socket } from "socket.io-client";
 import { socket as sharedSocket } from "@/lib/socket";
 import { useSocketState } from "@/lib/useSocketState";
@@ -35,14 +36,18 @@ interface DashboardData {
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<DashboardData | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const socketState = useSocketState();
   const socketRef = useRef<Socket | null>(null);
   const joinedServicesRef = useRef<string[]>([]);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
   const joinServiceRooms = useCallback((services: Array<{ id: string; name: string }>) => {
     const socket = socketRef.current;
@@ -58,20 +63,14 @@ export default function Dashboard() {
     }
   }, []);
 
-  const fetchDashboard = useCallback(async (token: string) => {
+  const fetchDashboard = useCallback(async () => {
     try {
       const [metricsRes, servicesRes] = await Promise.all([
-        fetch("/api/dashboard/metrics", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/services", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        fetch("/api/dashboard/metrics"),
+        fetch("/api/services"),
       ]);
 
       if (metricsRes.status === 401 || servicesRes.status === 401) {
-        localStorage.removeItem("obs_token");
-        localStorage.removeItem("obs_user");
         router.replace("/login");
         return;
       }
@@ -92,58 +91,38 @@ export default function Dashboard() {
   }, [joinServiceRooms, router]);
 
   useEffect(() => {
-    setMounted(true);
+    if (status !== "authenticated") return;
 
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const storedUser = localStorage.getItem("obs_user");
-    if (storedUser) {
-      try { setUser(JSON.parse(storedUser)); } catch {}
-    }
-
-    fetchDashboard(token);
+    fetchDashboard();
 
     const socket = sharedSocket;
     socketRef.current = socket;
 
-    const refreshFromSocket = () => {
-      const currentToken = localStorage.getItem("obs_token");
-      if (currentToken) fetchDashboard(currentToken);
-    };
-
-    socket.on("metric:created", refreshFromSocket);
-    socket.on("log:created", refreshFromSocket);
-    socket.on("deployment:created", refreshFromSocket);
-    socket.on("anomaly:detected", refreshFromSocket);
+    socket.on("metric:created", fetchDashboard);
+    socket.on("log:created", fetchDashboard);
+    socket.on("deployment:created", fetchDashboard);
+    socket.on("anomaly:detected", fetchDashboard);
 
     return () => {
-      socket.off("metric:created", refreshFromSocket);
-      socket.off("log:created", refreshFromSocket);
-      socket.off("deployment:created", refreshFromSocket);
-      socket.off("anomaly:detected", refreshFromSocket);
+      socket.off("metric:created", fetchDashboard);
+      socket.off("log:created", fetchDashboard);
+      socket.off("deployment:created", fetchDashboard);
+      socket.off("anomaly:detected", fetchDashboard);
       socketRef.current = null;
       joinedServicesRef.current = [];
     };
-  }, [router, fetchDashboard]);
+  }, [status, fetchDashboard]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
 
-  if (!mounted) return null;
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">
-      <Sidebar onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
+      <Sidebar onLogout={handleLogout} userName={session?.user?.name ?? ""} socketState={socketState} />
 
       <main className="main-content">
-        <Topbar userName={user?.name} />
+        <Topbar userName={session?.user?.name ?? undefined} />
 
         <div className="dashboard-scroll-area">
           {error && (
@@ -152,8 +131,7 @@ export default function Dashboard() {
               onRetry={() => {
                 setError("");
                 setLoading(true);
-                const token = localStorage.getItem("obs_token");
-                if (token) fetchDashboard(token);
+                fetchDashboard();
               }}
             />
           )}

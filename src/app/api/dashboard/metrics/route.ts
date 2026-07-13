@@ -3,7 +3,7 @@ import { verifyAuth } from "@/lib/middleware/auth";
 import { prisma } from "@/lib/config/prisma";
 
 export async function GET(req: NextRequest) {
-  const auth = verifyAuth(req);
+  const auth = await verifyAuth(req);
   if ("error" in auth) return auth.error;
 
   try {

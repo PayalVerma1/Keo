@@ -1,11 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { BrainCircuit, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { BrainCircuit, Eye, EyeOff, Loader2, Shield } from "lucide-react";
+
+const AUTH_ERRORS: Record<string, string> = {
+  OAuthAccountNotLinked: "This email is already registered with a different sign-in method. Use the original method.",
+  OAuthSignin: "Could not start OAuth sign-in. Check your OAuth credentials.",
+  OAuthCallback: "OAuth sign-in failed. Try again.",
+  Callback: "Sign-in callback error. Try again.",
+  AccessDenied: "Access denied.",
+  Default: "An unknown error occurred. Try again.",
+};
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { status } = useSession();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
@@ -15,10 +27,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
-    // If already logged in, redirect to dashboard
-    const token = localStorage.getItem("obs_token");
-    if (token) router.replace("/");
-  }, [router]);
+    // Show NextAuth error passed as ?error= query param
+    const errCode = searchParams?.get("error");
+    if (errCode) {
+      setError(AUTH_ERRORS[errCode] ?? AUTH_ERRORS.Default);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (status === "authenticated") router.replace("/");
+  }, [router, status]);
 
   if (!mounted) return null;
 
@@ -28,43 +46,62 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const endpoint =
-        mode === "login" ? "/api/auth/login" : "/api/auth/register";
-      const body =
-        mode === "login"
-          ? { email: form.email, password: form.password }
-          : { name: form.name, email: form.email, password: form.password };
+      if (mode === "register") {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+        });
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+        const data = await res.json();
 
-      const data = await res.json();
+        if (!res.ok) {
+          setError(data.message || "Something went wrong");
+          setLoading(false);
+          return;
+        }
 
-      if (!res.ok) {
-        setError(data.message || "Something went wrong");
-        setLoading(false);
+        // Auto sign-in after successful registration
+        const result = await signIn("credentials", {
+          email: form.email,
+          password: form.password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setMode("login");
+          setForm({ name: "", email: form.email, password: "" });
+          setError("");
+          return;
+        }
+
+        router.replace("/");
         return;
       }
 
-      if (mode === "login") {
-        localStorage.setItem("obs_token", data.token);
-        localStorage.setItem("obs_user", JSON.stringify(data.user));
-        router.replace("/");
-      } else {
-        // After register, switch to login
-        setMode("login");
-        setForm({ name: "", email: form.email, password: "" });
-        setError("");
-        alert("Account created! Please log in.");
+      const result = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password.");
+        return;
       }
+
+      router.replace("/");
     } catch {
       setError("Network error. Is the server running?");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOAuthLogin = async (provider: "google" | "github") => {
+    setError("");
+    setLoading(true);
+    await signIn(provider, { callbackUrl: "/" });
   };
 
   return (
@@ -89,8 +126,21 @@ export default function LoginPage() {
         <p className="login-subtitle">
           {mode === "login"
             ? "Sign in to access your observability dashboard"
-            : "Start monitoring your infrastructure"}
+            : "Create a new account for the dashboard"}
         </p>
+
+        {mode === "login" && (
+          <div className="mb-4 grid gap-3">
+            <button type="button" className="form-submit" onClick={() => handleOAuthLogin("google")} disabled={loading}>
+              Continue with Google
+            </button>
+            <button type="button" className="form-submit" onClick={() => handleOAuthLogin("github")} disabled={loading}>
+              Continue with GitHub
+            </button>
+          </div>
+        )}
+
+        {mode === "login" && <div className="mb-4 flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}><Shield size={14} /> Sign in with an existing account or register below.</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
           {mode === "register" && (

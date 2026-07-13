@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { BellRing, CheckCircle2, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSocketState } from "@/lib/useSocketState";
@@ -9,24 +10,21 @@ import { Topbar } from "@/components/layout/topbar";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<{ name?: string; email?: string; createdAt?: string } | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("obs_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
 
     // Always fetch fresh from API so profile data is never stale
-    fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch("/api/auth/me")
       .then((res) => {
         if (res.status === 401) {
-          localStorage.removeItem("obs_token");
-          localStorage.removeItem("obs_user");
           router.replace("/login");
           return null;
         }
@@ -36,20 +34,15 @@ export default function ProfilePage() {
         if (data) setUser(data);
       })
       .catch(() => {
-        // fallback to localStorage
-        const storedUser = localStorage.getItem("obs_user");
-        if (storedUser) {
-          try { setUser(JSON.parse(storedUser)); } catch {}
+        // fallback to session data
+        if (session?.user) {
+          setUser({ name: session.user.name ?? undefined, email: session.user.email ?? undefined });
         }
       })
       .finally(() => setLoadingUser(false));
-  }, [router]);
-  const handleLogout = () => {
-    localStorage.removeItem("obs_token");
-    localStorage.removeItem("obs_user");
-    router.replace("/login");
-  };
+  }, [status, session, router]);
 
+  const handleLogout = () => signOut({ callbackUrl: "/login" });
   const socketState = useSocketState();
 
   const initials = (user?.name ?? "User")
@@ -58,6 +51,8 @@ export default function ProfilePage() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <div className="layout-wrapper">

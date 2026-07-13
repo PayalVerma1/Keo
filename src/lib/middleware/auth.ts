@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/options";
 import jwt from "jsonwebtoken";
 
 export type AuthPayload = { id: string };
@@ -7,39 +9,28 @@ export type AuthPayload = { id: string };
 export type ApiKeyPayload = { serviceId: string; type: "sdk" };
 
 /**
- * Verifies the Authorization header and returns the decoded payload.
- * Returns a 401 NextResponse if auth fails (caller should return it).
+ * Verifies the NextAuth session and returns the authenticated user's id.
+ * Returns a 401 NextResponse if the session is missing (caller should return it).
  */
-export function verifyAuth(
-  req: NextRequest
-): { payload: AuthPayload } | { error: NextResponse } {
-  const authHeader = req.headers.get("authorization");
+export async function verifyAuth(
+  _req: NextRequest
+): Promise<{ payload: AuthPayload } | { error: NextResponse }> {
+  const session = await getServerSession(authOptions);
 
-  if (!authHeader) {
+  if (!session?.user) {
     return {
-      error: NextResponse.json({ message: "No token provided" }, { status: 401 }),
+      error: NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
     };
   }
 
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
+  const userId = (session.user as any).id as string | undefined;
+  if (!userId) {
     return {
-      error: NextResponse.json({ message: "Invalid token format" }, { status: 401 }),
+      error: NextResponse.json({ message: "Session missing user id" }, { status: 401 }),
     };
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
-    return { payload: decoded };
-  } catch {
-    return {
-      error: NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 }
-      ),
-    };
-  }
+  return { payload: { id: userId } };
 }
 
 /**
