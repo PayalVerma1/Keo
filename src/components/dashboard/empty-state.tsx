@@ -8,11 +8,7 @@ export function EmptyMetricsState() {
         No metrics data yet
       </p>
       <p className="max-w-[400px] text-[13px] text-[var(--text-secondary)]">
-        Create a service and push metrics via{" "}
-        <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono">
-          POST /api/metrics
-        </code>{" "}
-        to see live charts here.
+        Create a service and push metrics to see live charts here.
       </p>
     </div>
   );

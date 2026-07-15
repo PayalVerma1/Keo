@@ -1,6 +1,6 @@
 {
   "name": "@keo-platform/monitor-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official SDK for integrating services with the Keo observability platform",
   "publishConfig": {
     "access": "public"

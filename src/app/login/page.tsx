@@ -114,11 +114,6 @@ function LoginPageContent() {
 
   return (
     <div className="login-page">
-      {/* Animated background orbs */}
-      <div className="login-orb orb-1" />
-      <div className="login-orb orb-2" />
-      <div className="login-orb orb-3" />
-
       <div className="login-card">
         {/* Logo */}
         <div className="login-logo">
