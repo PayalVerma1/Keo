@@ -4,6 +4,24 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/azure-workers.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig.json"
+      - "tsconfig.workers.json"
+      - "prisma/**"
+      - "src/lib/config/**"
+      - "src/lib/streams/**"
+      - "src/lib/workers/**"
+      - "src/lib/modules/websocket/**"
+  workflow_dispatch:
+
+# Azure App Service accepts only one active OneDeploy operation per app. Queue
+# newer worker deployments rather than allowing a second deployment to return 409.
+concurrency:
+  group: azure-keo-workers-deploy
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -11,6 +29,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
