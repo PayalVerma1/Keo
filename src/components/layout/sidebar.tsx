@@ -73,7 +73,7 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
           <button
             type="button"
             onClick={() => router.push("/profile")}
-            className="mb-3 min-h-10 w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-left text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
+            className="mb-3 min-h-10 w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-left text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
             {userName}
           </button>
@@ -84,7 +84,7 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
             id="logout-btn"
             type="button"
             onClick={onLogout}
-            className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-md border-0 bg-transparent py-2 text-left text-sm text-[var(--accent-red)] transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
+            className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-md border-0 bg-transparent py-2 text-left text-sm text-[var(--accent-red)] transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
             <LogOut size={16} /> Sign Out
           </button>

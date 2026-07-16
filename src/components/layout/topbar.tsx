@@ -40,7 +40,7 @@ export function Topbar({
           aria-label="User avatar"
           onClick={() => router.push("/profile")}
         >
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500 to-blue-500 text-xs font-bold text-white">
+          <div className="flex h-full w-full items-center justify-center bg-[#A8B5C8] text-xs font-bold text-[#13141a]">
             {initial}
           </div>
         </button>

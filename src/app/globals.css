@@ -19,8 +19,10 @@
   --accent-yellow: #f59e0b;
   --accent-yellow-dim: rgba(245, 158, 11, 0.15);
 
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
+  /* Chrome replaces blue/purple */
+  --accent-chrome: #A8B5C8;
+  --accent-blue: #A8B5C8;
+  --accent-purple: #A8B5C8;
 
   --border-color: rgba(255, 255, 255, 0.08);
 }
@@ -57,7 +59,7 @@
   }
 
   .sidebar-header {
-    @apply p-6 text-xl font-semibold tracking-[0.5px] text-indigo-300;
+    @apply p-6 text-xl font-semibold tracking-[0.5px] text-[#E8B84B];
   }
 
   .nav-menu {
@@ -65,7 +67,7 @@
   }
 
   .nav-item {
-    @apply flex min-h-11 cursor-pointer items-center gap-3 border-l-[3px] border-transparent px-6 py-3 text-sm text-[var(--text-secondary)] no-underline transition-colors duration-200 hover:bg-white/[0.03] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)];
+    @apply flex min-h-11 cursor-pointer items-center gap-3 border-l-[3px] border-transparent px-6 py-3 text-sm text-[var(--text-secondary)] no-underline transition-colors duration-200 hover:bg-white/[0.03] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)];
   }
 
   .nav-item.active {
@@ -109,11 +111,11 @@
   }
 
   .icon-btn {
-    @apply flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)];
+    @apply flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)];
   }
 
   .avatar {
-    @apply h-10 w-10 cursor-pointer overflow-hidden rounded-full border-0 p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)];
+    @apply h-10 w-10 cursor-pointer overflow-hidden rounded-full border-0 p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)];
   }
 
   .dashboard-scroll-area {
@@ -201,7 +203,7 @@
   }
 
   .btn-outline {
-    @apply mr-2 cursor-pointer rounded border border-[var(--border-color)] bg-transparent px-3 py-1.5 text-[11px] font-semibold text-[var(--text-secondary)] transition-colors duration-200 hover:bg-white/5 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
+    @apply mr-2 cursor-pointer rounded border border-[var(--border-color)] bg-transparent px-3 py-1.5 text-[11px] font-semibold text-[var(--text-secondary)] transition-colors duration-200 hover:bg-white/5 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
   }
 
   .terminal {
@@ -213,7 +215,7 @@
   }
 
   .term-info {
-    @apply mr-2 text-[var(--accent-blue)];
+    @apply mr-2 text-[#A8B5C8];
   }
 
   .term-err {
@@ -324,29 +326,6 @@
     @apply relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[var(--bg-darker)];
   }
 
-  .login-orb {
-    @apply pointer-events-none absolute rounded-full opacity-15 blur-[80px];
-    animation: orb-float 8s ease-in-out infinite;
-  }
-
-  .orb-1 {
-    @apply left-[-100px] top-[-150px] h-[500px] w-[500px];
-    background: radial-gradient(circle, #8b5cf6, transparent);
-    animation-delay: 0s;
-  }
-
-  .orb-2 {
-    @apply bottom-[-100px] right-[-80px] h-[400px] w-[400px];
-    background: radial-gradient(circle, #2ec885, transparent);
-    animation-delay: 3s;
-  }
-
-  .orb-3 {
-    @apply left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2;
-    background: radial-gradient(circle, #3b82f6, transparent);
-    animation-delay: 6s;
-  }
-
   .login-card {
     @apply relative z-10 w-full max-w-[420px] rounded-2xl border border-white/10 bg-[rgba(30,31,38,0.85)] p-10 shadow-2xl backdrop-blur-xl;
   }
@@ -356,11 +335,11 @@
   }
 
   .login-logo-icon {
-    @apply flex h-11 w-11 items-center justify-center rounded-[10px] border border-indigo-300/20 bg-indigo-300/10;
+    @apply flex h-11 w-11 items-center justify-center rounded-[10px] border border-[#E8B84B]/30 bg-[#E8B84B]/10;
   }
 
   .login-brand {
-    @apply text-lg font-bold tracking-[0.3px] text-indigo-300;
+    @apply text-lg font-bold tracking-[0.3px] text-[silver];
   }
 
   .login-title {
@@ -388,7 +367,7 @@
   }
 
   .form-input {
-    @apply w-full rounded-lg border border-[var(--border-color)] bg-white/[0.04] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-[var(--text-muted)] focus:border-indigo-300/50 focus:shadow-[0_0_0_3px_rgba(165,180,252,0.08)] focus-visible:outline-none;
+    @apply w-full rounded-lg border border-[var(--border-color)] bg-white/[0.04] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-[var(--text-muted)] focus:border-[#A8B5C8]/50 focus:shadow-[0_0_0_3px_rgba(168,181,200,0.08)] focus-visible:outline-none;
   }
 
   .form-input-wrap .form-input {
@@ -396,7 +375,7 @@
   }
 
   .form-eye-btn {
-    @apply absolute right-3 top-1/2 flex min-h-10 min-w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-[var(--text-muted)] transition-colors duration-200 hover:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
+    @apply absolute right-3 top-1/2 flex min-h-10 min-w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-[var(--text-muted)] transition-colors duration-200 hover:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
   }
 
   .form-error {
@@ -404,7 +383,11 @@
   }
 
   .form-submit {
-    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-gradient-to-br from-violet-500 to-indigo-500 p-3 text-sm font-semibold tracking-[0.3px] text-white transition duration-200 hover:-translate-y-px hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
+    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[#A8B5C8] p-3 text-sm font-semibold tracking-[0.3px] text-[#13141a] transition duration-200 hover:-translate-y-px hover:bg-[#BFC9D8] active:bg-[#8E9DB0] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
+  }
+
+  .oauth-btn {
+    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[#A8B5C8] p-3 text-sm font-semibold tracking-[0.3px] text-[#13141a] transition duration-200 hover:-translate-y-px hover:bg-[#BFC9D8] active:bg-[#8E9DB0] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
   }
 
   .login-switch {
@@ -412,7 +395,7 @@
   }
 
   .switch-btn {
-    @apply ml-1 cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-indigo-300 underline underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
+    @apply ml-1 cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[#A8B5C8] underline underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)];
   }
 }
 
@@ -575,14 +558,6 @@
   .login-card {
     @apply max-w-full p-6;
   }
-
-  .orb-1 {
-    @apply h-[320px] w-[320px];
-  }
-
-  .orb-2 {
-    @apply h-[280px] w-[280px];
-  }
 }
 
 @media (max-width: 430px) {
@@ -649,15 +624,5 @@
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes orb-float {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-30px) scale(1.05);
   }
 }

@@ -79,7 +79,7 @@ export function InsightsPanel() {
     <div className="card flex-1">
       <div className="card-header mb-0">
         <div className="flex items-center gap-2">
-          <BrainCircuit size={18} className="text-indigo-300" aria-hidden="true" />
+          <BrainCircuit size={18} className="text-[#A8B5C8]" aria-hidden="true" />
           <span className="text-base font-semibold">AI Insights</span>
         </div>
       </div>

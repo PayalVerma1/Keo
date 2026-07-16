@@ -118,7 +118,7 @@ function LoginPageContent() {
         {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-icon">
-            <BrainCircuit size={28} color="#a5b4fc" />
+            <BrainCircuit size={28} color="#E8B84B" />
           </div>
           <span className="login-brand">Keo</span>
         </div>

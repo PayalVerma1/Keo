@@ -81,8 +81,8 @@ export default function ProfilePage() {
                       justifyContent: "center",
                       fontWeight: 700,
                       fontSize: "20px",
-                      color: "white",
-                      background: "linear-gradient(135deg, #8b5cf6, #3b82f6)",
+                      color: "#13141a",
+                      background: "#E8B84B",
                     }}
                   >
                     {initials}
@@ -114,7 +114,7 @@ export default function ProfilePage() {
               <div className="card" style={{ marginBottom: "16px" }}>
                 <div className="card-header">
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <ShieldCheck size={18} color="#a5b4fc" />
+                    <ShieldCheck size={18} color="#E8B84B" />
                     <span style={{ fontSize: "16px", fontWeight: 600 }}>Security</span>
                   </div>
                 </div>
