@@ -46,7 +46,7 @@ export function AppSidebar({
         <div className="compact-sidebar-status">
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div className="compact-status-dot" />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#2ee59d" }}>Connected</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent-green)" }}>Connected</span>
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
             WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
@@ -121,7 +121,7 @@ export function AppSidebar({
       <div className="sidebar-footer">
         <div className="status-indicator">
           <div className="status-dot" />
-          Connected
+          <strong>Connected</strong>
         </div>
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
           WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
@@ -138,7 +138,7 @@ export function AppSidebar({
             }}
           >
             <User size={16} />
-            {userName}
+            <strong>{userName}</strong>
           </a>
         )}
 
@@ -159,7 +159,7 @@ export function AppSidebar({
             type="button"
           >
             <LogOut size={16} />
-            Sign Out
+            <strong>Sign Out</strong>
           </button>
         )}
 

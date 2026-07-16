@@ -82,7 +82,7 @@ export default function ProfilePage() {
                       fontWeight: 700,
                       fontSize: "20px",
                       color: "white",
-                      background: "linear-gradient(135deg, #8b5cf6, #3b82f6)",
+                      background: "grey",
                     }}
                   >
                     {initials}

@@ -114,12 +114,12 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
           position: "absolute",
           top: "10px",
           right: "10px",
-          background: "rgba(255,255,255,0.08)",
-          border: "none",
+          background: "var(--sidebar-hover)",
+          border: "1px solid var(--sidebar-hover)",
           borderRadius: "6px",
           padding: "6px 10px",
           cursor: "pointer",
-          color: copied ? "var(--accent-green)" : "var(--text-muted)",
+          color: copied ? "var(--accent-green)" : "var(--text-light)",
           display: "flex",
           alignItems: "center",
           gap: "4px",
@@ -132,18 +132,18 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
       </button>
       <pre
         style={{
-          background: "#111216",
+          background: "var(--sidebar-active)",
           borderRadius: "8px",
           padding: "20px",
           overflowX: "auto",
           fontFamily: "monospace",
           fontSize: "13px",
           lineHeight: "1.7",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--sidebar-hover)",
           margin: 0,
         }}
       >
-        <code style={{ color: "#e2e8f0" }}>{code}</code>
+        <code style={{ color: "var(--text-light)" }}>{code}</code>
       </pre>
     </div>
   );
@@ -157,9 +157,9 @@ function Section({ id, title, children }: { id: string; title: string; children:
           fontSize: "22px",
           fontWeight: 700,
           marginBottom: "16px",
-          color: "#f8f9fa",
+          color: "var(--text-primary)",
           paddingBottom: "12px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "1px solid var(--border-color)",
         }}
       >
         {title}
@@ -171,7 +171,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code style={{ background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "13px", fontFamily: "monospace", color: "#a5b4fc" }}>
+    <code style={{ background: "var(--bg-card-hover)", padding: "2px 7px", borderRadius: "4px", fontSize: "13px", fontFamily: "monospace", color: "var(--accent-primary)", border: "1px solid var(--border-color)" }}>
       {children}
     </code>
   );
@@ -182,7 +182,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
     <div style={{ overflowX: "auto", marginBottom: "20px" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
         <thead>
-          <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+          <tr style={{ background: "var(--bg-card-hover)" }}>
             {headers.map((h) => (
               <th
                 key={h}
@@ -194,7 +194,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
                   textTransform: "uppercase",
                   fontSize: "11px",
                   letterSpacing: "0.5px",
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  borderBottom: "1px solid var(--border-color)",
                 }}
               >
                 {h}
@@ -204,13 +204,13 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <tr key={i} style={{ borderBottom: "1px solid var(--border-color)" }}>
               {row.map((cell, j) => (
                 <td
                   key={j}
                   style={{
                     padding: "10px 14px",
-                    color: j === 0 ? "#a5b4fc" : "var(--text-secondary)",
+                    color: j === 0 ? "var(--accent-primary)" : "var(--text-secondary)",
                     fontFamily: j === 0 ? "monospace" : undefined,
                   }}
                 >
@@ -293,8 +293,8 @@ export default function DocsPage() {
               .docs-shell { display: flex; gap: 24px; align-items: flex-start; }
               .docs-toc { width: 220px; flex-shrink: 0; position: sticky; top: 16px; align-self: flex-start; padding: 8px 0; }
               .docs-main { flex: 1; min-width: 0; }
-              .docs-chip { display: inline-block; background: rgba(165,180,252,0.12); border: 1px solid rgba(165,180,252,0.22); color: #a5b4fc; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
-              .docs-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
+              .docs-chip { display: inline-block; background: color-mix(in srgb, var(--accent-primary) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--border-color)); color: var(--accent-primary); padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+              .docs-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 12px 30px color-mix(in srgb, var(--text-primary) 10%, transparent); }
               .docs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
               .docs-stat-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px; }
               @media (max-width: 1024px) {
@@ -356,7 +356,7 @@ export default function DocsPage() {
                     { step: "3", title: "Add the SDK", desc: "Install the SDK, add a few lines to your app entry point." },
                   ].map((s) => (
                     <div key={s.step} className="docs-card">
-                      <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(165,180,252,0.15)", color: "#a5b4fc", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "15px", marginBottom: "12px" }}>{s.step}</div>
+                      <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)", color: "var(--accent-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "15px", marginBottom: "12px" }}>{s.step}</div>
                       <div style={{ fontWeight: 600, marginBottom: "6px" }}>{s.title}</div>
                       <div style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>{s.desc}</div>
                     </div>
@@ -437,8 +437,8 @@ export default function DocsPage() {
                   { title: "Deployments", desc: "Chronological list of version releases. Correlate deployments with metric changes in the Service detail view." },
                   { title: "AI Insights", desc: "Gemini-powered anomaly detection. Insights are generated automatically when metrics breach thresholds." },
                 ].map((item) => (
-                  <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "rgba(255,255,255,0.02)", borderRadius: "8px", padding: "16px" }}>
-                    <div style={{ width: "6px", borderRadius: "4px", background: "linear-gradient(180deg,#8b5cf6,#3b82f6)", flexShrink: 0 }} />
+                  <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px" }}>
+                    <div style={{ width: "6px", borderRadius: "4px", background: "var(--accent-primary)", flexShrink: 0 }} />
                     <div>
                       <div style={{ fontWeight: 600, marginBottom: "4px" }}>{item.title}</div>
                       <div style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>{item.desc}</div>
@@ -448,7 +448,7 @@ export default function DocsPage() {
               </Section>
 
               <Section id="integration" title="Full Integration Example">
-                <div style={{ background: "rgba(46,200,133,0.06)", border: "1px solid rgba(46,200,133,0.2)", borderRadius: "8px", padding: "14px 18px", marginBottom: "20px", fontSize: "13px", color: "var(--accent-green)", lineHeight: 1.6 }}>
+                <div style={{ background: "color-mix(in srgb, var(--accent-green) 8%, var(--bg-card))", border: "1px solid color-mix(in srgb, var(--accent-green) 35%, var(--border-color))", borderRadius: "8px", padding: "14px 18px", marginBottom: "20px", fontSize: "13px", color: "var(--accent-green)", lineHeight: 1.6 }}>
                   ✅ Copy the snippet below into your app entry point. Replace the environment variables and you&apos;re done.
                 </div>
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>

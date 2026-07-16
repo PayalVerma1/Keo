@@ -121,7 +121,7 @@ function Avatar({ initial }: { initial: string }) {
         style={{
           width: "100%",
           height: "100%",
-          background: "linear-gradient(45deg, #8b5cf6, #3b82f6)",
+          background: "grey",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
