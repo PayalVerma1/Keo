@@ -380,10 +380,8 @@ export default function DocsPage() {
                   rows={[
                     ["apiKey", "string", "required", "Service-scoped API key from Dashboard → Profile → API Keys"],
                     ["serviceId", "string", "required", "UUID of your service (Dashboard → Services)"],
-                    ["baseUrl", "string", "http://localhost:3000", "Base URL of your Keo server"],
+                    ["baseUrl", "string", "https://keo-five.vercel.app", "Base URL of Keo server"],
                     ["metricsInterval", "number", "30000", "How often (ms) to auto-send CPU/memory metrics"],
-                    ["logBatchSize", "number", "10", "Number of logs to collect before flushing"],
-                    ["silent", "boolean", "false", "Suppress SDK console output (set true in production)"],
                   ]}
                 />
               </Section>
@@ -456,7 +454,7 @@ export default function DocsPage() {
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
                   Required environment variables:
                 </p>
-                <CodeBlock code={`KEO_API_KEY=<your-service-api-key>\nKEO_SERVICE_ID=<your-service-uuid>\nKEO_BASE_URL=http://localhost:3000\nGIT_SHA=v1.2.3`} language="bash" />
+                <CodeBlock code={`KEO_API_KEY=<your-service-api-key>\nKEO_SERVICE_ID=<your-service-uuid>\nKEO_BASE_URL=https://keo-five.vercel.app\nGIT_SHA=v1.2.3`} language="bash" />
                 <CodeBlock code={CODE_FULL} />
               </Section>
             </main>
