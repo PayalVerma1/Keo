@@ -57,7 +57,7 @@ export const analyzeAnomaly = async (
   recentDeployments: DeploymentContext[]
 ): Promise<AnomalyAnalysis> => {
   const model = getClient().getGenerativeModel({
-    model: process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite",
+    model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
     generationConfig: { responseMimeType: "application/json" },
   });
 
