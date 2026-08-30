@@ -28,3 +28,7 @@ export const publishLog = async (payload: StreamPayload) => {
 export const publishDeployment = async (payload: StreamPayload) => {
   return addToStream(STREAMS.DEPLOYMENTS, payload);
 };
+
+export const publishVerificationJob = async (payload: StreamPayload) => {
+  return addToStream(STREAMS.VERIFICATION_JOBS, payload);
+};
