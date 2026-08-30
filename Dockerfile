@@ -10,6 +10,10 @@ FROM dependencies AS build
 COPY . .
 RUN pnpm exec prisma generate && pnpm run build && pnpm run build:workers
 
+FROM dependencies AS test
+COPY . .
+RUN pnpm exec prisma generate
+
 FROM base AS app
 ENV NODE_ENV=production
 COPY --from=dependencies /app/node_modules ./node_modules

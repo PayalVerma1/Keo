@@ -29,6 +29,18 @@ The diagram below follows the architecture in your reference image and maps it t
 
 ![Keo architecture diagram](./img.png)
 
+### Pull Request Verification
+
+Keo now supports the verification loop shown in the diagram: a pull request workflow builds and
+exercises an isolated Docker sandbox, submits a verification job, and closes its telemetry window.
+Redis dispatches the job to the verification worker, which compares CPU, memory, latency, and errors
+against a stored or historical production baseline. It stores a deterministic PASS/WARN/FAIL report and
+posts the outcome back to the pull request. Gemini can explain the evidence, but does not decide the
+verdict.
+
+See [PR verification setup](./docs/pr-verification.md) for the required GitHub secrets, variables, and
+the traffic command that should emit SDK telemetry from your sandbox.
+
 ## Stack And Technologies
 
 ### Frontend
@@ -133,5 +145,4 @@ From the `sdk/` directory:
 - Use the SDK from your own Node.js service or API.
 - The dashboard reflects telemetry that your application sends to Keo.
 - AI insight generation is part of the Keo platform experience.
-
 
