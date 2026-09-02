@@ -12,9 +12,9 @@ const ensureGroup = async () => {
     await client.xGroupCreate(STREAMS.METRICS, GROUP_NAME, "0", {
       MKSTREAM: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // BUSYGROUP means group already exists — that's fine
-    if (!String(error.message).includes("BUSYGROUP")) throw error;
+    if (!String(error).includes("BUSYGROUP")) throw error;
   }
 };
 

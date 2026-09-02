@@ -14,9 +14,6 @@ export function useSocketState(): "live" | "connecting" | "offline" {
   );
 
   useEffect(() => {
-    // Sync once on mount in case the state changed between render and effect
-    setState(socket.connected ? "live" : "connecting");
-
     const onConnect = () => setState("live");
     const onDisconnect = () => setState("offline");
     const onError = () => setState("offline");

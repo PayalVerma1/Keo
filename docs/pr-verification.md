@@ -20,6 +20,12 @@ Set these repository variables:
 
 Forked PRs are skipped intentionally because GitHub does not expose repository secrets to them.
 
+The SDK automatically reads `KEO_VERIFICATION_JOB_ID` from the runner environment and attaches it to
+every metric event. This makes every report use only telemetry from its own PR, even when multiple
+PRs are verified at once. The workflow publishes a `KEO merge verification` GitHub check: `PASSED`
+is successful, `WARNING` is neutral, and `FAILED` or `ERROR` blocks merging when this check is made
+required in GitHub branch protection.
+
 ## Baselines and verdicts
 
 The worker uses the latest stored baseline for `KEO_BASELINE_SERVICE_ID`. If none exists, it computes a

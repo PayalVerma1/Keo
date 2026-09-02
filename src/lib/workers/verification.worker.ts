@@ -54,7 +54,7 @@ async function processJob(jobId: string) {
   try {
     const [prMetrics, baselineSnapshot] = await Promise.all([
       prisma.metrics.findMany({
-        where: { serviceId: job.serviceId, createdAt: { gte: job.createdAt, lte: job.completedAt } },
+        where: { serviceId: job.serviceId, verificationJobId: job.id },
         select: { cpu: true, memory: true, latency: true, errors: true },
       }),
       job.baselineServiceId
@@ -95,7 +95,10 @@ async function processJob(jobId: string) {
         ? VerificationStatus.WARNING
         : VerificationStatus.PASSED;
     const analysis = await explainVerification(status, comparisons);
-    const summary = `${status}: compared ${prMetrics.length} PR telemetry samples against a production baseline.`;
+    const failed = comparisons.filter((comparison) => comparison.verdict !== "PASS");
+    const summary = failed.length
+      ? `${status}: ${failed.map((comparison) => `${comparison.metric} ${comparison.deltaPercent > 0 ? "+" : ""}${comparison.deltaPercent}% (limit ${comparison.thresholdPercent}%)`).join(", ")}.`
+      : `${status}: ${prMetrics.length} PR telemetry samples were within the production baseline thresholds.`;
 
     await prisma.$transaction([
       prisma.verificationReport.create({

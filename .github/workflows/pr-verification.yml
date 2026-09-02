@@ -54,14 +54,14 @@ jobs:
         run: ${{ vars.KEO_PR_TEST_COMMAND || 'docker run --rm "keo-pr:${KEO_SHA}" pnpm run build' }}
 
       - name: Close telemetry window
-        if: success()
+        if: always() && steps.create.outputs.job_id != ''
         run: |
           curl --fail-with-body --silent --show-error --request POST \
             "$KEO_API_URL/api/verifications/${{ steps.create.outputs.job_id }}/complete" \
             --header "x-keo-verification-token: $KEO_VERIFICATION_TOKEN"
 
       - name: Wait for verification report
-        if: success()
+        if: always() && steps.create.outputs.job_id != ''
         id: report
         run: |
           for attempt in {1..36}; do
@@ -72,6 +72,7 @@ jobs:
             if [[ "$status" =~ ^(PASSED|WARNING|FAILED|ERROR)$ ]]; then
               echo "status=$status" >> "$GITHUB_OUTPUT"
               echo "summary=$(echo "$response" | jq -r '.report.summary // "Verification completed"')" >> "$GITHUB_OUTPUT"
+              echo "report=$(echo "$response" | jq -c '.report // {}')" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             sleep 5
@@ -85,14 +86,51 @@ jobs:
         env:
           VERIFICATION_STATUS: ${{ steps.report.outputs.status }}
           VERIFICATION_SUMMARY: ${{ steps.report.outputs.summary }}
+          VERIFICATION_REPORT: ${{ steps.report.outputs.report }}
         with:
           script: |
-            const body = `## KEO verification: ${process.env.VERIFICATION_STATUS}\n\n${process.env.VERIFICATION_SUMMARY}`;
+            const report = JSON.parse(process.env.VERIFICATION_REPORT || '{}');
+            const comparisons = Array.isArray(report.comparisons) ? report.comparisons : [];
+            const detail = comparisons.length
+              ? `\n\n| Metric | Baseline | PR | Change | Limit | Verdict |\n| --- | ---: | ---: | ---: | ---: | --- |\n${comparisons.map((item) => `| ${item.metric} | ${item.baseline} | ${item.observed} | ${item.deltaPercent}% | ${item.thresholdPercent}% | ${item.verdict} |`).join('\n')}`
+              : '';
+            const advice = report.recommendations?.recommendation
+              ? `\n\n**Recommendation:** ${report.recommendations.recommendation}`
+              : '';
+            const body = `## KEO verification: ${process.env.VERIFICATION_STATUS}\n\n${process.env.VERIFICATION_SUMMARY}${detail}${advice}`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body,
+            });
+
+      - name: Publish merge check
+        if: always() && steps.report.outputs.status != ''
+        uses: actions/github-script@v7
+        env:
+          VERIFICATION_STATUS: ${{ steps.report.outputs.status }}
+          VERIFICATION_SUMMARY: ${{ steps.report.outputs.summary }}
+        with:
+          script: |
+            const status = process.env.VERIFICATION_STATUS;
+            const conclusion = {
+              PASSED: 'success',
+              WARNING: 'neutral',
+              FAILED: 'failure',
+              ERROR: 'failure',
+            }[status] || 'failure';
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'KEO merge verification',
+              head_sha: context.payload.pull_request.head.sha,
+              status: 'completed',
+              conclusion,
+              output: {
+                title: `KEO verification: ${status}`,
+                summary: process.env.VERIFICATION_SUMMARY,
+              },
             });
 
       - name: Fail on verification regression

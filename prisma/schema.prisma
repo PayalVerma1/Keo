@@ -130,9 +130,12 @@ model Metrics {
   throughput Float
   latency    Float
   errors     Float
-  serviceId  String
-  service    Service  @relation(fields: [serviceId], references: [id])
-  createdAt  DateTime @default(now())
+  serviceId         String
+  service           Service  @relation(fields: [serviceId], references: [id])
+  verificationJobId String?
+  createdAt         DateTime @default(now())
+
+  @@index([serviceId, verificationJobId, createdAt])
 }
 
 model Logs {

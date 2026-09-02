@@ -3,6 +3,7 @@ export interface LogPayload {
   level: LogLevel;
   message: string;
   serviceId: string;
+  verificationJobId?: string;
 }
 export interface MetricPayload {
   cpu: number;      
@@ -26,4 +27,5 @@ export interface MonitorConfig {
   logBatchSize?: number;     // How many logs to collect before sending (default: 10)
   logFlushInterval?: number; // How long to wait before sending logs in ms (default: 5000)
   silent?: boolean;          // If true, suppresses all console output
+  verificationJobId?: string; // Correlates sandbox telemetry with a KEO PR verification job
 }
