@@ -45,15 +45,9 @@ export default function LogsPage() {
         const serviceList = (await servicesRes.json()) as Service[];
         setServices(serviceList);
 
-        const logRequests = serviceList.map(async (service) => {
-          const res = await fetch(`/api/logs/${service.id}`);
-          if (!res.ok) return [] as LogEntry[];
-          const entries = (await res.json()) as Array<Omit<LogEntry, "serviceName">>;
-          return entries.map((entry) => ({ ...entry, serviceId: service.id, serviceName: service.name }));
-        });
-
-        const settled = await Promise.all(logRequests);
-        setLogs(settled.flat());
+        const logsRes = await fetch("/api/logs?limit=80");
+        if (!logsRes.ok) throw new Error("Failed to load recent logs");
+        setLogs((await logsRes.json()) as LogEntry[]);
       } catch (err: any) {
         setError(err.message || "Unable to load logs");
       } finally {
