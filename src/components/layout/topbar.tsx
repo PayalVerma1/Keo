@@ -3,6 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface TopbarProps {
   userName?: string | null;
@@ -44,6 +45,7 @@ export function Topbar({
           <div className="status-dot" />
           {liveLabel}
         </div>
+        <ThemeToggle />
         <button type="button" className="icon-btn" aria-label="Notifications">
           <Bell size={18} />
         </button>
@@ -56,7 +58,7 @@ export function Topbar({
           aria-label="User avatar"
           onClick={() => router.push("/profile")}
         >
-          <div className="flex h-full w-full items-center justify-center bg-[#A8B5C8] text-xs font-bold text-[#13141a]">
+          <div className="flex h-full w-full items-center justify-center bg-[var(--accent-chrome)] text-xs font-bold text-[var(--on-accent)]">
             {initial}
           </div>
         </button>

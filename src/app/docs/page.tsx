@@ -108,7 +108,7 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
           position: "absolute",
           top: "10px",
           right: "10px",
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--hover-fill)",
           border: "none",
           borderRadius: "6px",
           padding: "6px 10px",
@@ -118,7 +118,7 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
           alignItems: "center",
           gap: "4px",
           fontSize: "11px",
-          transition: "all 0.2s",
+          transition: "color 0.2s ease",
         }}
       >
         {copied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
@@ -126,14 +126,14 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
       </button>
       <pre
         style={{
-          background: "#111216",
+          background: "var(--code-bg)",
           borderRadius: "8px",
           padding: "20px",
           overflowX: "auto",
           fontFamily: "monospace",
           fontSize: "13px",
           lineHeight: "1.7",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--border-color)",
           margin: 0,
         }}
       >
@@ -151,9 +151,9 @@ function Section({ id, title, children }: { id: string; title: string; children:
           fontSize: "22px",
           fontWeight: 700,
           marginBottom: "16px",
-          color: "#f8f9fa",
+          color: "var(--text-primary)",
           paddingBottom: "12px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "1px solid var(--border-color)",
         }}
       >
         {title}
@@ -165,7 +165,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code style={{ background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "13px", fontFamily: "monospace", color: "#a5b4fc" }}>
+    <code style={{ background: "var(--hover-fill)", padding: "2px 7px", borderRadius: "4px", fontSize: "13px", fontFamily: "monospace", color: "var(--accent-chrome)" }}>
       {children}
     </code>
   );
@@ -176,7 +176,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
     <div style={{ overflowX: "auto", marginBottom: "20px" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
         <thead>
-          <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+          <tr style={{ background: "var(--hover-fill)" }}>
             {headers.map((h) => (
               <th
                 key={h}
@@ -188,7 +188,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
                   textTransform: "uppercase",
                   fontSize: "11px",
                   letterSpacing: "0.5px",
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  borderBottom: "1px solid var(--border-color)",
                 }}
               >
                 {h}
@@ -198,13 +198,13 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <tr key={i} style={{ borderBottom: "1px solid var(--border-color)" }}>
               {row.map((cell, j) => (
                 <td
                   key={j}
                   style={{
                     padding: "10px 14px",
-                    color: j === 0 ? "#a5b4fc" : "var(--text-secondary)",
+                    color: j === 0 ? "var(--accent-chrome)" : "var(--text-secondary)",
                     fontFamily: j === 0 ? "monospace" : undefined,
                   }}
                 >
@@ -271,7 +271,7 @@ export default function DocsPage() {
               .docs-toc { width: 220px; flex-shrink: 0; position: sticky; top: 16px; align-self: flex-start; padding: 8px 0; }
               .docs-main { flex: 1; min-width: 0; }
               .docs-chip { display: inline-block; background: rgba(165,180,252,0.12); border: 1px solid rgba(165,180,252,0.22); color: #a5b4fc; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
-              .docs-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
+              .docs-card { background: var(--hover-fill); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; }
               .docs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
               .docs-stat-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px; }
               @media (max-width: 1024px) {
@@ -417,7 +417,7 @@ export default function DocsPage() {
                   { title: "Applications", desc: "Register the app GitHub Actions will run in the sandbox. Copy the service ID and API key for the SDK." },
                   { title: "Docs", desc: "SDK, workflow secrets, and how KEO_VERIFICATION_JOB_ID ties sandbox telemetry to a job." },
                 ].map((item) => (
-                  <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "rgba(255,255,255,0.02)", borderRadius: "8px", padding: "16px" }}>
+                  <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "var(--hover-fill)", borderRadius: "8px", padding: "16px" }}>
                     <div style={{ width: "6px", borderRadius: "4px", background: "linear-gradient(180deg,#8b5cf6,#3b82f6)", flexShrink: 0 }} />
                     <div>
                       <div style={{ fontWeight: 600, marginBottom: "4px" }}>{item.title}</div>

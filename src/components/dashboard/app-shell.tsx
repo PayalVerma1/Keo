@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
 import { AppSidebar } from "./navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type ShellProps = {
   active: string;
@@ -66,6 +67,7 @@ export function AppTopbar({
           <div className="status-dot" />
           {liveText}
         </div>
+        <ThemeToggle />
         <button className="icon-btn" type="button" aria-label="Notifications">
           <Bell size={18} />
         </button>

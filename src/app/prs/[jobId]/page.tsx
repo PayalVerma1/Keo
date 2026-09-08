@@ -76,7 +76,7 @@ export default function PrReportPage() {
             <div className="page-title-wrap">
               <button
                 type="button"
-                className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-md border-0 bg-transparent px-0 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
+                className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-md border-0 bg-transparent px-0 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                 onClick={() => router.push("/")}
               >
                 <ArrowLeft size={16} aria-hidden="true" />

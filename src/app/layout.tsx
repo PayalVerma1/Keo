@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { themeBootstrapScript } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Keo",
@@ -13,9 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body suppressHydrationWarning>
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <ThemeProvider>
+          <NextAuthProvider>{children}</NextAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

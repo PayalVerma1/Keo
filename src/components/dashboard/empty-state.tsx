@@ -22,7 +22,7 @@ export function EmptyPrScoresState() {
       </p>
       <a
         href="/docs"
-        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-[var(--accent-green)] px-4 text-sm font-semibold text-[#13141a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)]"
+        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-[var(--accent-green)] px-4 text-sm font-semibold text-[var(--on-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)]"
       >
         Read setup docs
       </a>
