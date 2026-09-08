@@ -4,7 +4,7 @@ import { NextAuthProvider } from "@/components/NextAuthProvider";
 
 export const metadata: Metadata = {
   title: "Keo",
-  description: "Real-time metrics, logs, deployments, and AI incident insights.",
+  description: "Score pull requests against a production baseline and post the report back to GitHub.",
 };
 
 export default function RootLayout({

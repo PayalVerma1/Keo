@@ -1,9 +1,9 @@
-# PR verification pipeline
+# PR scoring pipeline
 
-KEO can verify a pull request in a Docker sandbox and turn its telemetry into a GitHub check.
-The `KEO PR verification` workflow creates a job, runs the configured traffic command, closes the
-telemetry window, and waits for the asynchronous comparison worker to return `PASSED`, `WARNING`,
-`FAILED`, or `ERROR`.
+KEO scores a pull request by running it in a Docker sandbox and comparing that telemetry to a
+production baseline. The `KEO PR verification` workflow creates a job, runs the configured traffic
+command, closes the telemetry window, and waits for the comparison worker to return `PASSED`,
+`WARNING`, `FAILED`, or `ERROR`. The same report appears in the Keo dashboard.
 
 ## Configure GitHub
 
