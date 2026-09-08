@@ -4,22 +4,18 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
-  BrainCircuit,
   FileText,
-  LayoutGrid,
+  GitPullRequest,
   Layers,
   LogOut,
-  Rocket,
   User,
 } from "lucide-react";
 
 export const navItems = [
-  { label: "Overview",    icon: LayoutGrid,  href: "/" },
-  { label: "Services",    icon: Layers,       href: "/services" },
-  { label: "Logs",        icon: FileText,     href: "/logs" },
-  { label: "Deployments", icon: Rocket,       href: "/deployments" },
-  { label: "AI Insights", icon: BrainCircuit, href: "/insights" },
-  { label: "Profile",     icon: User,         href: "/profile" },
+  { label: "PR scores", icon: GitPullRequest, href: "/" },
+  { label: "Applications", icon: Layers, href: "/services" },
+  { label: "Docs", icon: BookOpen, href: "/docs" },
+  { label: "Profile", icon: User, href: "/profile" },
 ];
 
 type SidebarProps = {
@@ -49,7 +45,7 @@ export function AppSidebar({
             <span style={{ fontSize: 11, fontWeight: 700, color: "#2ee59d" }}>Connected</span>
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
-            WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
+            Pipeline: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
           </div>
         </div>
 

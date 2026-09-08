@@ -48,7 +48,7 @@ export function AppTopbar({
   search,
   onSearch,
   userInitial = "U",
-  liveText = "Live",
+  liveText = "PR scoring",
 }: TopbarProps) {
   return (
     <header className="topbar">

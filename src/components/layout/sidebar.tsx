@@ -1,7 +1,9 @@
 
 
+"use client";
+
 import { useRouter, usePathname } from "next/navigation";
-import { BrainCircuit, FileText, LayoutGrid, Layers, LogOut, Rocket } from "lucide-react";
+import { BookOpen, GitPullRequest, Layers, LogOut } from "lucide-react";
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -16,12 +18,9 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
   const currentPath = activePath ?? pathname ?? "/";
 
   const navItems = [
-    { label: "Overview", icon: <LayoutGrid size={18} />, href: "/" },
-    { label: "Services", icon: <Layers size={18} />, href: "/services" },
-    { label: "Logs", icon: <FileText size={18} />, href: "/logs" },
-    { label: "Deployments", icon: <Rocket size={18} />, href: "/deployments" },
-    { label: "AI Insights", icon: <BrainCircuit size={18} />, href: "/insights" },
-    { label: "Docs", icon: <FileText size={18} />, href: "/docs" },
+    { label: "PR scores", icon: <GitPullRequest size={18} />, href: "/" },
+    { label: "Applications", icon: <Layers size={18} />, href: "/services" },
+    { label: "Docs", icon: <BookOpen size={18} />, href: "/docs" },
   ];
 
   return (
@@ -30,7 +29,10 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
 
       <nav className="nav-menu">
         {navItems.map((item) => {
-          const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
+          const isActive =
+            item.href === "/"
+              ? currentPath === "/" || currentPath.startsWith("/prs")
+              : currentPath === item.href || currentPath.startsWith(item.href);
 
           return (
             <a
@@ -65,8 +67,8 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
           />
           {socketState === "live" ? "Connected" : socketState === "offline" ? "Disconnected" : "Connecting…"}
         </div>
-        <div className="mb-4 text-xs text-[var(--text-muted)]">
-          WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
+        <div className="mb-4 text-xs text-[var(--text-secondary)]">
+          Pipeline: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
         </div>
 
         {userName && (

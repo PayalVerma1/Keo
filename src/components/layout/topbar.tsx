@@ -1,17 +1,23 @@
 
+"use client";
+
 import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
 
 interface TopbarProps {
   userName?: string | null;
   searchPlaceholder?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
   liveLabel?: string;
 }
 
 export function Topbar({
   userName,
-  searchPlaceholder = "Search telemetry...",
-  liveLabel = "Live - WebSockets",
+  searchPlaceholder = "Search pull requests...",
+  searchValue,
+  onSearchChange,
+  liveLabel = "PR scoring",
 }: TopbarProps) {
   const router = useRouter();
   const initial = userName?.trim().charAt(0)?.toUpperCase() ?? "U";
@@ -20,7 +26,17 @@ export function Topbar({
     <header className="topbar">
       <div className="search-box">
         <Search size={16} className="text-[var(--text-muted)]" aria-hidden="true" />
-        <input type="search" placeholder={searchPlaceholder} aria-label="Search telemetry" />
+        <input
+          type="search"
+          placeholder={searchPlaceholder}
+          aria-label="Search pull requests"
+          {...(onSearchChange
+            ? {
+                value: searchValue ?? "",
+                onChange: (event: { target: { value: string } }) => onSearchChange(event.target.value),
+              }
+            : {})}
+        />
       </div>
 
       <div className="topbar-actions">
