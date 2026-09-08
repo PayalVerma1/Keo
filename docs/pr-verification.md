@@ -16,9 +16,15 @@ Set these repository variables:
 
 - `KEO_SERVICE_ID` — service receiving SDK telemetry from the PR sandbox.
 - `KEO_BASELINE_SERVICE_ID` — production service used for the baseline.
-- `KEO_PR_TEST_COMMAND` — command that starts the sandboxed PR application, sends realistic traffic, and emits KEO SDK telemetry. It receives `KEO_API_URL` and `KEO_VERIFICATION_JOB_ID` as environment variables.
+- `KEO_PR_TEST_COMMAND` — command that sends realistic traffic to the sandboxed app
+  (`http://127.0.0.1:3000` by default) so the KEO SDK emits telemetry. It receives
+  `KEO_API_URL` and `KEO_VERIFICATION_JOB_ID` as environment variables. If unset, the
+  workflow only hits `/api/health`.
 
-Forked PRs are skipped intentionally because GitHub does not expose repository secrets to them.
+The workflow builds the `sandbox` Docker target, starts `docker-compose.pr-sandbox.yml`
+(Postgres, Redis, migrate, then the PR application), waits for the health check, runs
+the traffic command, then tears the stack down. Forked PRs are skipped intentionally
+because GitHub does not expose repository secrets to them.
 
 The SDK automatically reads `KEO_VERIFICATION_JOB_ID` from the runner environment and attaches it to
 every metric event. This makes every report use only telemetry from its own PR, even when multiple

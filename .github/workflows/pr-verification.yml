@@ -43,15 +43,24 @@ jobs:
             --data "{\"repository\":\"${{ github.repository }}\",\"commitSha\":\"$KEO_SHA\",\"pullRequestNumber\":$KEO_PR_NUMBER,\"serviceId\":\"$KEO_SERVICE_ID\",\"baselineServiceId\":\"$KEO_BASELINE_SERVICE_ID\"}")
           echo "job_id=$(echo "$response" | jq -r .jobId)" >> "$GITHUB_OUTPUT"
 
-      - name: Build PR image in an isolated Docker sandbox
-        run: docker build --target test --tag "keo-pr:${KEO_SHA}" .
+      - name: Build PR Docker image
+        run: docker build --target sandbox --tag "keo-pr:${KEO_SHA}" .
 
-      - name: Run application traffic and tests
+      - name: Start isolated sandbox
         env:
           KEO_VERIFICATION_JOB_ID: ${{ steps.create.outputs.job_id }}
-        # Replace this repository variable with the command that starts your PR app,
-        # exercises it, and emits SDK telemetry to KEO_API_URL.
-        run: ${{ vars.KEO_PR_TEST_COMMAND || 'docker run --rm "keo-pr:${KEO_SHA}" pnpm run build' }}
+        run: docker compose -f docker-compose.pr-sandbox.yml up -d --wait --wait-timeout 180
+
+      - name: Run tests and traffic
+        env:
+          KEO_VERIFICATION_JOB_ID: ${{ steps.create.outputs.job_id }}
+        # Replace this repository variable with traffic that hits the sandbox app
+        # and causes the KEO SDK to emit telemetry to KEO_API_URL.
+        run: ${{ vars.KEO_PR_TEST_COMMAND || 'curl --fail --silent --show-error http://127.0.0.1:3000/api/health' }}
+
+      - name: Collect sandbox result
+        if: always()
+        run: docker compose -f docker-compose.pr-sandbox.yml logs --no-color app
 
       - name: Close telemetry window
         if: always() && steps.create.outputs.job_id != ''
@@ -59,6 +68,10 @@ jobs:
           curl --fail-with-body --silent --show-error --request POST \
             "$KEO_API_URL/api/verifications/${{ steps.create.outputs.job_id }}/complete" \
             --header "x-keo-verification-token: $KEO_VERIFICATION_TOKEN"
+
+      - name: Stop sandbox
+        if: always()
+        run: docker compose -f docker-compose.pr-sandbox.yml down -v
 
       - name: Wait for verification report
         if: always() && steps.create.outputs.job_id != ''

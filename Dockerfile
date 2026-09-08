@@ -24,6 +24,11 @@ COPY --from=build /app/prisma ./prisma
 EXPOSE 3000
 CMD ["pnpm", "start"]
 
+FROM app AS sandbox
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+EXPOSE 3000
+CMD ["pnpm", "start"]
+
 FROM base AS workers
 ENV NODE_ENV=production
 COPY --from=dependencies /app/node_modules ./node_modules
