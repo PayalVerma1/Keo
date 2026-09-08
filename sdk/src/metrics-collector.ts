@@ -6,6 +6,7 @@ export class MetricsCollector {
   private serviceId: string;
   private interval: number;
   private silent: boolean;
+  private verificationJobId?: string;
 
   private requestCount = 0;
   private errorCount = 0;
@@ -19,6 +20,7 @@ export class MetricsCollector {
     this.serviceId = config.serviceId;
     this.interval = config.metricsInterval ?? 30_000;
     this.silent = config.silent ?? false;
+    this.verificationJobId = config.verificationJobId ?? process.env.KEO_VERIFICATION_JOB_ID;
   }
 
   start() {
@@ -44,8 +46,9 @@ export class MetricsCollector {
   }
 
   async send(payload: Omit<MetricPayload, "serviceId">): Promise<void> {
+    const verification = this.verificationJobId ? { verificationJobId: this.verificationJobId } : {};
     await this.http
-      .post("/api/metrics", { ...payload, serviceId: this.serviceId })
+      .post("/api/metrics", { ...payload, serviceId: this.serviceId, ...verification })
       .catch((err: unknown) => {
         if (!this.silent) console.error("[keo-sdk] Failed to send metric:", err);
       });

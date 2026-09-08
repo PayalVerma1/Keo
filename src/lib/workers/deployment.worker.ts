@@ -12,8 +12,8 @@ const ensureGroup = async () => {
     await client.xGroupCreate(STREAMS.DEPLOYMENTS, GROUP_NAME, "0", {
       MKSTREAM: true,
     });
-  } catch (error: any) {
-    if (!String(error.message).includes("BUSYGROUP")) throw error;
+  } catch (error: unknown) {
+    if (!String(error).includes("BUSYGROUP")) throw error;
   }
 };
 

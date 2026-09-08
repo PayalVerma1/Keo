@@ -1,0 +1,151 @@
+name: KEO PR verification
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  verify:
+    # Verification credentials are deliberately unavailable to untrusted fork PRs.
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KEO_API_URL: ${{ secrets.KEO_API_URL }}
+      KEO_VERIFICATION_TOKEN: ${{ secrets.KEO_VERIFICATION_TOKEN }}
+      KEO_SERVICE_ID: ${{ vars.KEO_SERVICE_ID }}
+      KEO_BASELINE_SERVICE_ID: ${{ vars.KEO_BASELINE_SERVICE_ID }}
+      KEO_PR_NUMBER: ${{ github.event.pull_request.number }}
+      KEO_SHA: ${{ github.event.pull_request.head.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate KEO configuration
+        run: |
+          test -n "$KEO_API_URL"
+          test -n "$KEO_VERIFICATION_TOKEN"
+          test -n "$KEO_SERVICE_ID"
+          test -n "$KEO_BASELINE_SERVICE_ID"
+
+      - name: Create verification job
+        id: create
+        run: |
+          response=$(curl --fail-with-body --silent --show-error \
+            --request POST "$KEO_API_URL/api/verifications" \
+            --header "content-type: application/json" \
+            --header "x-keo-verification-token: $KEO_VERIFICATION_TOKEN" \
+            --data "{\"repository\":\"${{ github.repository }}\",\"commitSha\":\"$KEO_SHA\",\"pullRequestNumber\":$KEO_PR_NUMBER,\"serviceId\":\"$KEO_SERVICE_ID\",\"baselineServiceId\":\"$KEO_BASELINE_SERVICE_ID\"}")
+          echo "job_id=$(echo "$response" | jq -r .jobId)" >> "$GITHUB_OUTPUT"
+
+      - name: Build PR Docker image
+        run: docker build --target sandbox --tag "keo-pr:${KEO_SHA}" .
+
+      - name: Start isolated sandbox
+        env:
+          KEO_VERIFICATION_JOB_ID: ${{ steps.create.outputs.job_id }}
+        run: docker compose -f docker-compose.pr-sandbox.yml up -d --wait --wait-timeout 180
+
+      - name: Run tests and traffic
+        env:
+          KEO_VERIFICATION_JOB_ID: ${{ steps.create.outputs.job_id }}
+        # Replace this repository variable with traffic that hits the sandbox app
+        # and causes the KEO SDK to emit telemetry to KEO_API_URL.
+        run: ${{ vars.KEO_PR_TEST_COMMAND || 'curl --fail --silent --show-error http://127.0.0.1:3000/api/health' }}
+
+      - name: Collect sandbox result
+        if: always()
+        run: docker compose -f docker-compose.pr-sandbox.yml logs --no-color app
+
+      - name: Close telemetry window
+        if: always() && steps.create.outputs.job_id != ''
+        run: |
+          curl --fail-with-body --silent --show-error --request POST \
+            "$KEO_API_URL/api/verifications/${{ steps.create.outputs.job_id }}/complete" \
+            --header "x-keo-verification-token: $KEO_VERIFICATION_TOKEN"
+
+      - name: Stop sandbox
+        if: always()
+        run: docker compose -f docker-compose.pr-sandbox.yml down -v
+
+      - name: Wait for verification report
+        if: always() && steps.create.outputs.job_id != ''
+        id: report
+        run: |
+          for attempt in {1..36}; do
+            response=$(curl --fail-with-body --silent --show-error \
+              "$KEO_API_URL/api/verifications/${{ steps.create.outputs.job_id }}" \
+              --header "x-keo-verification-token: $KEO_VERIFICATION_TOKEN")
+            status=$(echo "$response" | jq -r .status)
+            if [[ "$status" =~ ^(PASSED|WARNING|FAILED|ERROR)$ ]]; then
+              echo "status=$status" >> "$GITHUB_OUTPUT"
+              echo "summary=$(echo "$response" | jq -r '.report.summary // "Verification completed"')" >> "$GITHUB_OUTPUT"
+              echo "report=$(echo "$response" | jq -c '.report // {}')" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Verification report timed out" >&2
+          exit 1
+
+      - name: Publish PR summary
+        if: always() && steps.report.outputs.status != ''
+        uses: actions/github-script@v7
+        env:
+          VERIFICATION_STATUS: ${{ steps.report.outputs.status }}
+          VERIFICATION_SUMMARY: ${{ steps.report.outputs.summary }}
+          VERIFICATION_REPORT: ${{ steps.report.outputs.report }}
+        with:
+          script: |
+            const report = JSON.parse(process.env.VERIFICATION_REPORT || '{}');
+            const comparisons = Array.isArray(report.comparisons) ? report.comparisons : [];
+            const detail = comparisons.length
+              ? `\n\n| Metric | Baseline | PR | Change | Limit | Verdict |\n| --- | ---: | ---: | ---: | ---: | --- |\n${comparisons.map((item) => `| ${item.metric} | ${item.baseline} | ${item.observed} | ${item.deltaPercent}% | ${item.thresholdPercent}% | ${item.verdict} |`).join('\n')}`
+              : '';
+            const advice = report.recommendations?.recommendation
+              ? `\n\n**Recommendation:** ${report.recommendations.recommendation}`
+              : '';
+            const body = `## KEO verification: ${process.env.VERIFICATION_STATUS}\n\n${process.env.VERIFICATION_SUMMARY}${detail}${advice}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Publish merge check
+        if: always() && steps.report.outputs.status != ''
+        uses: actions/github-script@v7
+        env:
+          VERIFICATION_STATUS: ${{ steps.report.outputs.status }}
+          VERIFICATION_SUMMARY: ${{ steps.report.outputs.summary }}
+        with:
+          script: |
+            const status = process.env.VERIFICATION_STATUS;
+            const conclusion = {
+              PASSED: 'success',
+              WARNING: 'neutral',
+              FAILED: 'failure',
+              ERROR: 'failure',
+            }[status] || 'failure';
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'KEO merge verification',
+              head_sha: context.payload.pull_request.head.sha,
+              status: 'completed',
+              conclusion,
+              output: {
+                title: `KEO verification: ${status}`,
+                summary: process.env.VERIFICATION_SUMMARY,
+              },
+            });
+
+      - name: Fail on verification regression
+        if: steps.report.outputs.status == 'FAILED' || steps.report.outputs.status == 'ERROR'
+        run: exit 1

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export type AuthPayload = { id: string };
+type SessionUser = { id?: string };
 
 /** Payload embedded inside an SDK API key */
 export type ApiKeyPayload = { serviceId: string; type: "sdk" };
@@ -23,7 +24,7 @@ export async function verifyAuth(
     };
   }
 
-  const userId = (session.user as any).id as string | undefined;
+  const userId = (session.user as SessionUser).id;
   if (!userId) {
     return {
       error: NextResponse.json({ message: "Session missing user id" }, { status: 401 }),
@@ -60,13 +61,13 @@ export function verifyApiKey(
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as ApiKeyPayload;
-    if (decoded.type !== "sdk") {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload | ApiKeyPayload;
+    if (!("serviceId" in decoded) || decoded.type !== "sdk") {
       return {
         error: NextResponse.json({ message: "Not an SDK API key" }, { status: 401 }),
       };
     }
-    return { payload: decoded };
+    return { payload: { serviceId: decoded.serviceId, type: "sdk" } };
   } catch {
     return {
       error: NextResponse.json(

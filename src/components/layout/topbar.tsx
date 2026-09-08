@@ -1,17 +1,24 @@
 
+"use client";
+
 import { useRouter } from "next/navigation";
 import { Bell, Search, Settings } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface TopbarProps {
   userName?: string | null;
   searchPlaceholder?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
   liveLabel?: string;
 }
 
 export function Topbar({
   userName,
-  searchPlaceholder = "Search telemetry...",
-  liveLabel = "Live - WebSockets",
+  searchPlaceholder = "Search pull requests...",
+  searchValue,
+  onSearchChange,
+  liveLabel = "PR scoring",
 }: TopbarProps) {
   const router = useRouter();
   const initial = userName?.trim().charAt(0)?.toUpperCase() ?? "U";
@@ -20,7 +27,17 @@ export function Topbar({
     <header className="topbar">
       <div className="search-box">
         <Search size={16} className="text-[var(--text-muted)]" aria-hidden="true" />
-        <input type="search" placeholder={searchPlaceholder} aria-label="Search telemetry" />
+        <input
+          type="search"
+          placeholder={searchPlaceholder}
+          aria-label="Search pull requests"
+          {...(onSearchChange
+            ? {
+                value: searchValue ?? "",
+                onChange: (event: { target: { value: string } }) => onSearchChange(event.target.value),
+              }
+            : {})}
+        />
       </div>
 
       <div className="topbar-actions">
@@ -28,6 +45,7 @@ export function Topbar({
           <div className="status-dot" />
           {liveLabel}
         </div>
+        <ThemeToggle />
         <button type="button" className="icon-btn" aria-label="Notifications">
           <Bell size={18} />
         </button>
@@ -40,7 +58,7 @@ export function Topbar({
           aria-label="User avatar"
           onClick={() => router.push("/profile")}
         >
-          <div className="flex h-full w-full items-center justify-center bg-[#A8B5C8] text-xs font-bold text-[#13141a]">
+          <div className="flex h-full w-full items-center justify-center bg-[var(--accent-chrome)] text-xs font-bold text-[var(--on-accent)]">
             {initial}
           </div>
         </button>

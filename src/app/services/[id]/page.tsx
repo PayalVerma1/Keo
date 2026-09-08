@@ -220,10 +220,10 @@ export default function ServiceDetailPage() {
           <div className="page-hero">
             <div className="page-title-wrap">
               <h1 className="page-title">
-                {service?.name ?? "Service monitor"}
+                {service?.name ?? "Application"}
               </h1>
               <p className="page-subtitle">
-                Live telemetry from your SDK — metrics, logs, and deployments sent by your connected service.
+                SDK credentials and sandbox telemetry for this application. Pull request scores use this service ID.
               </p>
             </div>
           </div>

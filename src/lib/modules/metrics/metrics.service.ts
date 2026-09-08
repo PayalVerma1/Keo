@@ -7,6 +7,7 @@ export const createMetric = async (data: {
   latency: number;
   errors: number;
   serviceId: string;
+  verificationJobId?: string;
 }) => {
   return prisma.metrics.create({
     data: {
@@ -16,6 +17,7 @@ export const createMetric = async (data: {
       latency: data.latency,
       errors: data.errors,
       serviceId: data.serviceId,
+      verificationJobId: data.verificationJobId,
     },
   });
 };

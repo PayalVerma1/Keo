@@ -1,0 +1,85 @@
+name: keo-verification
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keo
+      POSTGRES_USER: keo
+      POSTGRES_PASSWORD: keo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keo -d keo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - verification-postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - verification-redis:/data
+
+  keo:
+    build:
+      context: .
+      target: app
+    environment:
+      DATABASE_URL: postgresql://keo:keo@postgres:5432/keo?schema=public
+      REDIS_CLIENT: redis://redis:6379
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-local-development-secret}
+      NEXTAUTH_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-local-development-jwt-secret}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  workers:
+    build:
+      context: .
+      target: workers
+    environment:
+      DATABASE_URL: postgresql://keo:keo@postgres:5432/keo?schema=public
+      REDIS_CLIENT: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-local-development-jwt-secret}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  migrate:
+    build:
+      context: .
+      target: test
+    command: pnpm exec prisma migrate deploy
+    environment:
+      DATABASE_URL: postgresql://keo:keo@postgres:5432/keo?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  verification-postgres:
+  verification-redis:

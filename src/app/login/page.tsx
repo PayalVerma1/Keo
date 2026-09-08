@@ -3,7 +3,8 @@
 import React, { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import { BrainCircuit, Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import { Eye, EyeOff, GitPullRequest, Loader2, Shield } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const AUTH_ERRORS: Record<string, string> = {
   OAuthAccountNotLinked: "This email is already registered with a different sign-in method. Use the original method.",
@@ -114,11 +115,14 @@ function LoginPageContent() {
 
   return (
     <div className="login-page">
+      <div className="login-theme-toggle">
+        <ThemeToggle />
+      </div>
       <div className="login-card">
         {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-icon">
-            <BrainCircuit size={28} color="#E8B84B" />
+            <GitPullRequest size={28} className="text-[var(--brand)]" aria-hidden="true" />
           </div>
           <span className="login-brand">Keo</span>
         </div>
@@ -128,8 +132,8 @@ function LoginPageContent() {
         </h1>
         <p className="login-subtitle">
           {mode === "login"
-            ? "Sign in to access your observability dashboard"
-            : "Create a new account for the dashboard"}
+            ? "Sign in to review PR scores and verification reports"
+            : "Create an account to start scoring pull requests"}
         </p>
 
         {mode === "login" && (

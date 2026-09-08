@@ -1,7 +1,9 @@
 
 
+"use client";
+
 import { useRouter, usePathname } from "next/navigation";
-import { BrainCircuit, FileText, LayoutGrid, Layers, LogOut, Rocket } from "lucide-react";
+import { BookOpen, GitPullRequest, Layers, LogOut } from "lucide-react";
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -16,12 +18,9 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
   const currentPath = activePath ?? pathname ?? "/";
 
   const navItems = [
-    { label: "Overview", icon: <LayoutGrid size={18} />, href: "/" },
-    { label: "Services", icon: <Layers size={18} />, href: "/services" },
-    { label: "Logs", icon: <FileText size={18} />, href: "/logs" },
-    { label: "Deployments", icon: <Rocket size={18} />, href: "/deployments" },
-    { label: "AI Insights", icon: <BrainCircuit size={18} />, href: "/insights" },
-    { label: "Docs", icon: <FileText size={18} />, href: "/docs" },
+    { label: "PR scores", icon: <GitPullRequest size={18} />, href: "/" },
+    { label: "Applications", icon: <Layers size={18} />, href: "/services" },
+    { label: "Docs", icon: <BookOpen size={18} />, href: "/docs" },
   ];
 
   return (
@@ -30,7 +29,10 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
 
       <nav className="nav-menu">
         {navItems.map((item) => {
-          const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
+          const isActive =
+            item.href === "/"
+              ? currentPath === "/" || currentPath.startsWith("/prs")
+              : currentPath === item.href || currentPath.startsWith(item.href);
 
           return (
             <a
@@ -65,15 +67,15 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
           />
           {socketState === "live" ? "Connected" : socketState === "offline" ? "Disconnected" : "Connecting…"}
         </div>
-        <div className="mb-4 text-xs text-[var(--text-muted)]">
-          WebSocket: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
+        <div className="mb-4 text-xs text-[var(--text-secondary)]">
+          Pipeline: {socketState === "live" ? "Live" : socketState === "offline" ? "Offline" : "Pending"}
         </div>
 
         {userName && (
           <button
             type="button"
             onClick={() => router.push("/profile")}
-            className="mb-3 min-h-10 w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-left text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
+            className="mb-3 min-h-10 w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-left text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
             {userName}
           </button>
@@ -84,7 +86,7 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
             id="logout-btn"
             type="button"
             onClick={onLogout}
-            className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-md border-0 bg-transparent py-2 text-left text-sm text-[var(--accent-red)] transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A8B5C8] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
+            className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-md border-0 bg-transparent py-2 text-left text-sm text-[var(--accent-red)] transition-colors hover:bg-[var(--hover-fill)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-darker)]"
           >
             <LogOut size={16} /> Sign Out
           </button>

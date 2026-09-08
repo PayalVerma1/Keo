@@ -1,33 +1,34 @@
 # Keo
 
-Keo is an observability platform for instrumenting services, collecting telemetry, and turning raw signals into actionable insights. It includes a web dashboard, a realtime socket layer, background workers, a PostgreSQL + Redis persistence stack, and a companion SDK for integrating applications.
+Keo is a pull request scoring platform. It runs a PR in an isolated sandbox, compares the resulting telemetry against a production baseline, and posts a PASS / WARN / FAIL check plus a readable report back to GitHub.
 
 ## What Keo Does
 
 Keo helps you:
 
-- collect metrics, logs, and deployment events from services
-- stream live updates into a dashboard with WebSockets
-- aggregate time-series data for service health views
-- surface AI-assisted insights from metric and log context
-- manage services, auth, and API keys from a single UI
+- exercise a pull request in a Docker sandbox with the KEO SDK attached
+- collect PR-window metrics and logs from that run
+- compare CPU, memory, latency, and errors against a stored production baseline
+- return a deterministic score and verdict, with optional Gemini explanation
+- surface the report in the Keo dashboard and as a GitHub check / PR comment
 
 ## Key Features
 
-- Realtime dashboard with live metrics and log streaming
-- Service registry with per-service API keys
-- SDK for Node.js applications with metrics, logs, and deployment tracking
-- Redis Streams based ingestion pipeline
-- Background workers for metrics, logs, deployments, and anomaly analysis
-- AI-generated insights for suspicious patterns and context-rich alerts
-- Authenticated dashboard APIs for service and telemetry management
-- Service detail views for logs, deployments, metrics, and insights
+- GitHub Actions workflow that builds a sandbox, runs traffic, and notifies Keo
+- Verification API that creates a job, stores metadata, and returns a job ID
+- Redis Streams dispatch to a verification worker
+- Baseline comparison with configurable regression thresholds
+- Optional Gemini analysis for root cause, impact, and recommendations
+- Dashboard for PR scores, reports, and the applications you instrument
+- TypeScript SDK that tags sandbox telemetry with `KEO_VERIFICATION_JOB_ID`
 
 ## Architecture
 
-The diagram below follows the architecture in your reference image and maps it to the current codebase.
+A developer prompt produces a GitHub PR. GitHub Actions checks out the change, builds an isolated Docker sandbox, starts the PR application with the KEO SDK, runs tests or traffic, and sends telemetry to Keo.
 
-![Keo architecture diagram](./img.png)
+The verification API validates the request, stores the job, and pushes it onto the `verification-jobs` Redis stream. Workers ingest telemetry and compare PR data with the production baseline. The result is stored in PostgreSQL. Gemini may explain the evidence; it never decides the verdict. Keo then posts the GitHub check and report.
+
+See [PR verification setup](./docs/pr-verification.md) for GitHub secrets, variables, and the traffic command that should emit SDK telemetry from your sandbox.
 
 ## Stack And Technologies
 
@@ -36,39 +37,37 @@ The diagram below follows the architecture in your reference image and maps it t
 - Next.js 16 with the App Router
 - TypeScript
 - Tailwind CSS 4
-- Recharts for charts
+- Recharts for comparison charts
 - Lucide React for icons
 
 ### Backend And Data
 
 - Node.js runtime
 - PostgreSQL with Prisma ORM
-- Redis for message brokering and live pipeline coordination
-- Socket.IO for realtime updates
+- Redis for verification job streams and telemetry ingestion
+- Socket.IO for live job updates while a run is in progress
 - JWT-based authentication
-- Background worker processes for metrics, logs, deployments, and anomaly detection
+- Background workers for metrics, logs, and PR verification
 
 ### SDK
 
 - TypeScript SDK published from the `sdk/` package
 - ES module output plus CommonJS-compatible exports
-- API helpers for metrics, logs, deployments, and middleware instrumentation
+- Helpers for metrics, logs, and request instrumentation during a PR run
 
 ### AI And Analysis
 
-- Google Generative AI integration for log and anomaly analysis
-- Structured insight storage for downstream dashboard display
+- Google Generative AI for optional report explanations
+- Structured recommendations stored with each verification report
 
 ## How To Use Keo
 
-Keo is meant to be consumed from your own application. The usual flow is:
-
-1. Create a Keo account and register a service in the dashboard.
-2. Copy the service API key and service ID for that service.
-3. Install the SDK in your application.
-4. Initialize the SDK in your app entry point.
-5. Send metrics, logs, and deployment events from your code.
-6. View live charts, logs, and AI insights in the Keo dashboard.
+1. Create a Keo account and register the application you want to score.
+2. Copy the service API key and service ID.
+3. Install the SDK in that application so sandbox traffic emits telemetry.
+4. Add the Keo GitHub Actions workflow and required secrets.
+5. Open a pull request. Keo scores it against the production baseline.
+6. Read the verdict on GitHub and the full report in the dashboard.
 
 Example SDK setup:
 
@@ -87,7 +86,7 @@ const monitor = new Monitor({
 monitor.start();
 ```
 
-The SDK automatically handles metrics collection, batched logs, and deployment tracking from your app.
+The SDK collects metrics and logs from the sandboxed PR application. When `KEO_VERIFICATION_JOB_ID` is set in the runner, every metric is attached to that job.
 
 ## Code Format And Module Style
 
@@ -110,28 +109,24 @@ From the `sdk/` directory:
 
 ## Planned And Possible Future Features
 
-- alert routing to email, Slack, or Discord
-- saved alert rules and custom thresholds per service
-- distributed tracing and request waterfalls
-- advanced filtering and search across logs and insights
-- role-based access control for teams and organizations
-- anomaly trend history with incident timelines
+- numeric PR score history per repository
+- custom thresholds per application
+- GitHub App posting checks without polling from Actions
+- sandbox orchestration owned by Keo workers
 - SDK support for more runtimes and frameworks
-- exportable reports and shareable read-only dashboards
+- shareable read-only report links
 
 ## Repository Structure
 
 - `src/app` - dashboard pages, API routes, and application layout
 - `src/components` - reusable UI and dashboard widgets
 - `src/lib` - auth, config, streams, workers, and server modules
-- `sdk/` - standalone monitoring SDK package
+- `sdk/` - standalone SDK package used inside PR sandboxes
 - `prisma/` - Prisma schema and migrations
 
 ## Notes
 
-- Keo is designed to instrument your application, not replace it.
-- Use the SDK from your own Node.js service or API.
-- The dashboard reflects telemetry that your application sends to Keo.
-- AI insight generation is part of the Keo platform experience.
-
-
+- Keo scores the pull request application, it does not replace it.
+- Use the SDK from the app that GitHub Actions runs in the sandbox.
+- The dashboard reflects verification jobs and reports for your applications.
+- Gemini explains a verdict. Threshold comparison decides it.

@@ -37,36 +37,18 @@ export function LiveStream() {
   useEffect(() => {
     const load = async () => {
       try {
-        const servicesRes = await fetch("/api/services");
-        if (!servicesRes.ok) return;
-        const services = (await servicesRes.json()) as Array<{ id: string; name: string }>;
-
-        const logRequests = services.map(async (service) => {
-          const res = await fetch(`/api/logs/${service.id}`);
-          if (!res.ok) return [] as LogRow[];
-          const entries = (await res.json()) as Array<{
-            level: string;
-            message: string;
-            createdAt: string;
-          }>;
-          return entries.map((e) => {
-            const { tone, label } = levelToTone(e.level);
-            return {
-              time: relativeTime(e.createdAt),
-              tone,
-              label,
-              message: e.message,
-              serviceName: service.name,
-            };
-          });
-        });
-
-        const all = (await Promise.all(logRequests)).flat();
-
-        // sort newest first, take top 20
-        const sorted = all.slice(0, 20);
-
-        setRows(sorted);
+        const response = await fetch("/api/logs?limit=20");
+        if (!response.ok) return;
+        const entries = (await response.json()) as Array<{
+          level: string;
+          message: string;
+          createdAt: string;
+          serviceName?: string;
+        }>;
+        setRows(entries.map((entry) => {
+          const { tone, label } = levelToTone(entry.level);
+          return { time: relativeTime(entry.createdAt), tone, label, message: entry.message, serviceName: entry.serviceName };
+        }));
       } catch {
         // silently fail — live stream is non-critical
       } finally {

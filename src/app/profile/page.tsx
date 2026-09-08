@@ -58,12 +58,12 @@ export default function ProfilePage() {
     <div className="layout-wrapper">
       <Sidebar activePath="/profile" onLogout={handleLogout} userName={user?.name ?? ""} socketState={socketState} />
       <main className="main-content">
-        <Topbar userName={user?.name} liveLabel="Live – WebSocket" />
+        <Topbar userName={user?.name} liveLabel="PR scoring" />
         <div className="dashboard-scroll-area">
           <div className="page-hero" style={{ marginBottom: "20px" }}>
             <div className="page-title-wrap">
               <h1 className="page-title">Profile</h1>
-              <p className="page-subtitle">Keep your observability workspace aligned with your team and account.</p>
+              <p className="page-subtitle">Account settings for your PR scoring workspace.</p>
             </div>
           </div>
 

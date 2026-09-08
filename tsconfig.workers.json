@@ -17,6 +17,7 @@
     "src/lib/modules/deployments/**/*.ts",
     "src/lib/modules/logs/**/*.ts",
     "src/lib/modules/metrics/**/*.ts",
+    "src/lib/modules/verifications/**/*.ts",
     "src/lib/modules/websocket/realtime-bus.ts",
     "src/lib/modules/websocket/socket.events.ts",
     "src/lib/streams/**/*.ts",

@@ -11,13 +11,13 @@ model user {
   id            String    @id @default(uuid())
   name          String
   email         String    @unique
+  password      String?
+  createdAt     DateTime  @default(now())
   emailVerified DateTime?
   image         String?
-  password      String?
-  service       Service[]
   accounts      Account[]
+  service       Service[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
 }
 
 model Account {
@@ -26,15 +26,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -56,28 +55,76 @@ model VerificationToken {
 }
 
 model Service {
-  id          String       @id @default(uuid())
-  name        String
-  description String?
-  ownerID     String
-  owner       user         @relation(fields: [ownerID], references: [id])
-  insights    Insight[]
-  metrics     Metrics[]
-  logs        Logs[]
-  deployment  Deployment[]
-  createdAt   DateTime     @default(now())
+  id               String                 @id @default(uuid())
+  name             String
+  description      String?
+  ownerID          String
+  createdAt        DateTime               @default(now())
+  deployment       Deployment[]
+  insights         Insight[]
+  logs             Logs[]
+  metrics          Metrics[]
+  owner            user                   @relation(fields: [ownerID], references: [id])
+  baselines        VerificationBaseline[]
+  verificationJobs VerificationJob[]      @relation("VerificationTargetService")
+}
+
+model VerificationJob {
+  id                String              @id @default(uuid())
+  status            VerificationStatus  @default(QUEUED)
+  repository        String
+  commitSha         String
+  pullRequestNumber Int
+  serviceId         String
+  baselineServiceId String?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  thresholds        Json?
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  service           Service             @relation("VerificationTargetService", fields: [serviceId], references: [id])
+  report            VerificationReport?
+
+  @@index([status, createdAt])
+  @@index([repository, pullRequestNumber])
+}
+
+model VerificationBaseline {
+  id         String   @id @default(uuid())
+  serviceId  String
+  metrics    Json
+  sampleSize Int
+  capturedAt DateTime @default(now())
+  service    Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([serviceId, capturedAt])
+}
+
+model VerificationReport {
+  id              String             @id @default(uuid())
+  jobId           String             @unique
+  status          VerificationStatus
+  summary         String
+  comparisons     Json
+  recommendations Json?
+  createdAt       DateTime           @default(now())
+  job             VerificationJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
 
 model Metrics {
-  id         String   @id @default(uuid())
-  cpu        Float
-  memory     Float
-  throughput Float
-  latency    Float
-  errors     Float
-  serviceId  String
-  service    Service  @relation(fields: [serviceId], references: [id])
-  createdAt  DateTime @default(now())
+  id                String   @id @default(uuid())
+  cpu               Float
+  memory            Float
+  throughput        Float
+  latency           Float
+  errors            Float
+  serviceId         String
+  createdAt         DateTime @default(now())
+  verificationJobId String?
+  service           Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([serviceId, verificationJobId, createdAt])
 }
 
 model Logs {
@@ -85,16 +132,16 @@ model Logs {
   level     String
   message   String
   serviceId String
-  service   Service  @relation(fields: [serviceId], references: [id])
   createdAt DateTime @default(now())
+  service   Service  @relation(fields: [serviceId], references: [id])
 }
 
 model Deployment {
   id        String   @id @default(uuid())
   version   String
   serviceId String
-  service   Service  @relation(fields: [serviceId], references: [id])
   createdAt DateTime @default(now())
+  service   Service  @relation(fields: [serviceId], references: [id])
 }
 
 model Insight {
@@ -105,8 +152,18 @@ model Insight {
   metricContext  Json?
   logContext     Json?
   serviceId      String
-  service        Service  @relation(fields: [serviceId], references: [id])
   createdAt      DateTime @default(now())
+  service        Service  @relation(fields: [serviceId], references: [id])
 
   @@index([serviceId, createdAt])
+}
+
+enum VerificationStatus {
+  QUEUED
+  COLLECTING
+  PROCESSING
+  PASSED
+  WARNING
+  FAILED
+  ERROR
 }

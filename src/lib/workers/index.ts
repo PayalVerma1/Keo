@@ -23,6 +23,7 @@ const startWorkers = async () => {
   const { startLogsWorker } = await import("./logs.worker");
   const { startDeploymentWorker } = await import("./deployment.worker");
   const { startAnomalyWorker } = await import("./anomaly.worker");
+  const { startVerificationWorker } = await import("./verification.worker");
 
   await connectRedis();
   startHealthServer();
@@ -44,6 +45,11 @@ const startWorkers = async () => {
 
   startAnomalyWorker().catch((error) => {
     console.error("Anomaly worker crashed:", error);
+    process.exit(1);
+  });
+
+  startVerificationWorker().catch((error) => {
+    console.error("Verification worker crashed:", error);
     process.exit(1);
   });
 };

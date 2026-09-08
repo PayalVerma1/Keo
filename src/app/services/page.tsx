@@ -93,9 +93,9 @@ export default function ServicesPage() {
           {/* Page header */}
           <div className="page-hero">
             <div className="page-title-wrap">
-              <h1 className="page-title">Services</h1>
+              <h1 className="page-title">Applications</h1>
               <p className="page-subtitle">
-                Manage and monitor your infrastructure services with the same polished control plane experience as the dashboard.
+                Register the app GitHub Actions will run in the sandbox. Each application has a service ID and API key for the SDK.
               </p>
             </div>
             <div className="page-actions">
@@ -104,7 +104,7 @@ export default function ServicesPage() {
                 className="form-submit sm:w-auto sm:px-5 sm:py-2.5"
                 onClick={() => setShowCreate((v) => !v)}
               >
-                <Plus size={16} /> New Service
+                <Plus size={16} /> New application
               </button>
             </div>
           </div>
@@ -112,13 +112,13 @@ export default function ServicesPage() {
           {/* Create form */}
           {showCreate && (
             <div className="card" style={{ marginBottom:"24px" }}>
-              <h2 style={{ fontSize:"16px", fontWeight:600, marginBottom:"16px" }}>Create New Service</h2>
+              <h2 style={{ fontSize:"16px", fontWeight:600, marginBottom:"16px" }}>Register application</h2>
               <form onSubmit={handleCreateService} style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
                 <div className="form-group">
-                  <label className="form-label">Service Name</label>
+                  <label className="form-label">Application name</label>
                   <input
                     className="form-input"
-                    placeholder="auth-service-v2"
+                    placeholder="checkout-api"
                     value={newService.name}
                     onChange={(e) => setNewService({ ...newService, name: e.target.value })}
                     required
@@ -128,7 +128,7 @@ export default function ServicesPage() {
                   <label className="form-label">Description (optional)</label>
                   <input
                     className="form-input"
-                    placeholder="Authentication microservice"
+                    placeholder="The service scored on each pull request"
                     value={newService.description}
                     onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                   />
@@ -152,19 +152,22 @@ export default function ServicesPage() {
           ) : services.length === 0 ? (
             <div className="card" style={{ textAlign:"center", padding:"56px 20px" }}>
               <Layers size={48} color="var(--text-muted)" style={{ margin:"0 auto 16px" }} />
-              <p style={{ fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>No services yet</p>
+              <p style={{ fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>No applications yet</p>
               <p style={{ fontSize:"13px", color:"var(--text-secondary)" }}>
-                Create your first service to start monitoring metrics.
+                Create your first application to start scoring pull requests.
               </p>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
               {services.map((service) => (
-                <div
+                <a
                   key={service.id}
-                  className="card service-list-item"
-                  style={{ cursor:"pointer", transition:"all 0.2s" }}
-                  onClick={() => router.push(`/services/${service.id}`)}
+                  href={`/services/${service.id}`}
+                  className="card service-list-item block no-underline"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    router.push(`/services/${service.id}`);
+                  }}
                 >
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:"16px" }}>
@@ -189,8 +192,8 @@ export default function ServicesPage() {
                       </div>
                       <ChevronRight size={16} color="var(--text-muted)" />
                     </div>
-                  </div>
-                </div>
+                    </div>
+                </a>
               ))}
             </div>
           )}
