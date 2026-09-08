@@ -45,3 +45,24 @@ export async function getVerificationJob(id: string) {
     include: { report: true },
   });
 }
+
+const ownerJobInclude = {
+  report: true,
+  service: { select: { id: true, name: true } },
+} as const;
+
+export async function listVerificationJobsForOwner(userId: string, take = 50) {
+  return prisma.verificationJob.findMany({
+    where: { service: { ownerID: userId } },
+    include: ownerJobInclude,
+    orderBy: { createdAt: "desc" },
+    take,
+  });
+}
+
+export async function getVerificationJobForOwner(userId: string, jobId: string) {
+  return prisma.verificationJob.findFirst({
+    where: { id: jobId, service: { ownerID: userId } },
+    include: ownerJobInclude,
+  });
+}
