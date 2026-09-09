@@ -236,8 +236,8 @@ export default function ServiceDetailPage() {
                 <span className="card-title">Service ID</span>
                 <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Use in SDK config</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0,0,0,0.25)", borderRadius: "8px", padding: "10px 14px", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <code style={{ flex: 1, fontSize: "12px", color: "#a5b4fc", wordBreak: "break-all", fontFamily: "monospace" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "#1a1c210f", borderRadius: "8px", padding: "10px 14px", border: "1px solid var(--border-color)" }}>
+                <code style={{ flex: 1, fontSize: "12px", color: "var(--text-primary)", wordBreak: "break-all", fontFamily: "monospace" }}>
                   {serviceId}
                 </code>
                 <button
@@ -258,8 +258,8 @@ export default function ServiceDetailPage() {
                 <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>For SDK authentication</span>
               </div>
               {apiKey ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0,0,0,0.25)", borderRadius: "8px", padding: "10px 14px", border: "1px solid rgba(46,200,133,0.25)" }}>
-                  <code style={{ flex: 1, fontSize: "12px", color: "var(--accent-green)", wordBreak: "break-all", fontFamily: "monospace", maxHeight: "48px", overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "#1a1c210f", borderRadius: "8px", padding: "10px 14px", border: "1px solid rgba(46,200,133,0.25)" }}>
+                  <code style={{ flex: 1, fontSize: "12px", color: "var(--text-primary)", wordBreak: "break-all", fontFamily: "monospace", maxHeight: "48px", overflow: "hidden" }}>
                     {apiKey}
                   </code>
                   <button
