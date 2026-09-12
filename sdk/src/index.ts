@@ -5,6 +5,7 @@ import { DeploymentTracker } from "./deployment-tracker";
 import { MonitorConfig } from "./types";
 
 export * from "./types";
+export { normalizeRoute } from "./metrics-collector";
 
 export class Monitor {
   readonly log: LogCollector;           
@@ -38,7 +39,7 @@ export class Monitor {
       res: { statusCode: number; on: (event: string, cb: () => void) => void },
       next: () => void
     ) => {
-      const end = this.metrics.startRequest();
+      const end = this.metrics.startRequest({ method: req.method, path: req.url });
 
       // When the response finishes, record the result
       res.on("finish", () => {

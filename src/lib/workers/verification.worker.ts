@@ -2,13 +2,12 @@ import { VerificationStatus } from "@/lib/generated/prisma";
 import { client } from "../config/redis";
 import { prisma } from "../config/prisma";
 import { STREAMS } from "../streams/redis-streams";
-import { explainVerification } from "../modules/verifications/verification-analyzer.service";
+import { compareToFingerprint } from "../modules/impact/compare";
+import { buildFingerprint, persistFingerprint, observedFromMetricRows } from "../modules/impact/fingerprint";
+import { enrichFindingsWithModel, recommendationsFromReport } from "../modules/impact/rca";
 
 const GROUP_NAME = "verification-workers";
 const CONSUMER_NAME = `verification-consumer-${process.pid}`;
-const DEFAULT_THRESHOLDS = { cpu: 20, memory: 20, latency: 15, errors: 10 };
-type MetricKey = keyof typeof DEFAULT_THRESHOLDS;
-type MetricAverage = Record<MetricKey, number>;
 
 const ensureGroup = async () => {
   try {
@@ -18,32 +17,11 @@ const ensureGroup = async () => {
   }
 };
 
-const averageMetrics = (metrics: Array<Record<MetricKey, number>>): MetricAverage | null => {
-  if (!metrics.length) return null;
-  return Object.keys(DEFAULT_THRESHOLDS).reduce((averages, key) => {
-    const metricKey = key as MetricKey;
-    averages[metricKey] = metrics.reduce((sum, metric) => sum + metric[metricKey], 0) / metrics.length;
-    return averages;
-  }, {} as MetricAverage);
-};
-
-const buildComparison = (baseline: MetricAverage, observed: MetricAverage, thresholds: Record<string, unknown>) => {
-  const comparisons = Object.keys(DEFAULT_THRESHOLDS).map((key) => {
-    const metric = key as MetricKey;
-    const threshold = typeof thresholds[metric] === "number" ? thresholds[metric] : DEFAULT_THRESHOLDS[metric];
-    const deltaPercent = baseline[metric] === 0
-      ? (observed[metric] === 0 ? 0 : 100)
-      : ((observed[metric] - baseline[metric]) / baseline[metric]) * 100;
-    return {
-      metric,
-      baseline: baseline[metric],
-      observed: observed[metric],
-      deltaPercent: Number(deltaPercent.toFixed(2)),
-      thresholdPercent: threshold,
-      verdict: deltaPercent > threshold ? "FAIL" : deltaPercent > threshold * 0.75 ? "WARN" : "PASS",
-    };
-  });
-  return comparisons;
+const statusFromVerdict = (verdict: "ok" | "warn" | "regress" | "insufficient") => {
+  if (verdict === "regress") return VerificationStatus.FAILED;
+  if (verdict === "warn") return VerificationStatus.WARNING;
+  if (verdict === "ok") return VerificationStatus.PASSED;
+  return VerificationStatus.ERROR;
 };
 
 async function processJob(jobId: string) {
@@ -52,57 +30,45 @@ async function processJob(jobId: string) {
 
   await prisma.verificationJob.update({ where: { id: job.id }, data: { status: VerificationStatus.PROCESSING } });
   try {
-    const [prMetrics, baselineSnapshot] = await Promise.all([
+    const baselineServiceId = job.baselineServiceId ?? job.serviceId;
+    const [prMetrics, fingerprint] = await Promise.all([
       prisma.metrics.findMany({
         where: { serviceId: job.serviceId, verificationJobId: job.id },
-        select: { cpu: true, memory: true, latency: true, errors: true },
+        select: { cpu: true, memory: true, latency: true, errors: true, routes: true },
       }),
-      job.baselineServiceId
-        ? prisma.verificationBaseline.findFirst({
-            where: { serviceId: job.baselineServiceId }, orderBy: { capturedAt: "desc" },
-          })
-        : Promise.resolve(null),
+      buildFingerprint(baselineServiceId, { before: job.createdAt }),
     ]);
-    const observed = averageMetrics(prMetrics);
-    const snapshotMetrics = baselineSnapshot?.metrics as Partial<MetricAverage> | undefined;
-    let baseline = snapshotMetrics && Object.keys(DEFAULT_THRESHOLDS).every((key) => typeof snapshotMetrics[key as MetricKey] === "number")
-      ? snapshotMetrics as MetricAverage
-      : null;
 
-    if (!baseline && job.baselineServiceId) {
-      const historicalMetrics = await prisma.metrics.findMany({
-        where: { serviceId: job.baselineServiceId, createdAt: { lt: job.createdAt } },
-        orderBy: { createdAt: "desc" }, take: 200,
-        select: { cpu: true, memory: true, latency: true, errors: true },
-      });
-      baseline = averageMetrics(historicalMetrics);
-      if (baseline) {
-        await prisma.verificationBaseline.create({
-          data: {
-            serviceId: job.baselineServiceId,
-            metrics: baseline,
-            sampleSize: historicalMetrics.length,
-          },
-        });
-      }
+    const observed = observedFromMetricRows(prMetrics);
+    if (!observed.process && !observed.routes.length) {
+      throw new Error("Insufficient PR telemetry for comparison");
+    }
+    if (!fingerprint.process && !fingerprint.routes.length) {
+      throw new Error("Insufficient production fingerprint for comparison");
     }
 
-    if (!observed || !baseline) throw new Error("Insufficient PR telemetry or production baseline for comparison");
-    const comparisons = buildComparison(baseline, observed, (job.thresholds as Record<string, unknown>) ?? {});
-    const status = comparisons.some((comparison) => comparison.verdict === "FAIL")
-      ? VerificationStatus.FAILED
-      : comparisons.some((comparison) => comparison.verdict === "WARN")
-        ? VerificationStatus.WARNING
-        : VerificationStatus.PASSED;
-    const analysis = await explainVerification(status, comparisons);
-    const failed = comparisons.filter((comparison) => comparison.verdict !== "PASS");
-    const summary = failed.length
-      ? `${status}: ${failed.map((comparison) => `${comparison.metric} ${comparison.deltaPercent > 0 ? "+" : ""}${comparison.deltaPercent}% (limit ${comparison.thresholdPercent}%)`).join(", ")}.`
-      : `${status}: ${prMetrics.length} PR telemetry samples were within the production baseline thresholds.`;
+    await persistFingerprint(fingerprint);
+
+    let report = compareToFingerprint({
+      fingerprint,
+      process: observed.process,
+      routes: observed.routes,
+      thresholds: (job.thresholds as Record<string, unknown>) ?? {},
+    });
+    report = await enrichFindingsWithModel(report);
+
+    const status = statusFromVerdict(report.verdict);
+    const recommendations = recommendationsFromReport(report);
 
     await prisma.$transaction([
       prisma.verificationReport.create({
-        data: { jobId: job.id, status, summary, comparisons, recommendations: analysis ?? undefined },
+        data: {
+          jobId: job.id,
+          status,
+          summary: report.summary,
+          comparisons: report.comparisons,
+          recommendations,
+        },
       }),
       prisma.verificationJob.update({ where: { id: job.id }, data: { status } }),
     ]);

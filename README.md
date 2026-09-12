@@ -1,8 +1,8 @@
 # Keo
 
-> Automated Pull Request scoring, regression verification, and AI-assisted root cause analysis.
+> Production memory for coding agents. Route-level fingerprints, `would_this_regress` in Cursor, optional GitHub last mile.
 
-Keo runs pull requests in an isolated sandbox, measures live telemetry against your production baseline, evaluates regressions deterministically, and posts a comprehensive `PASS` / `WARN` / `FAIL` verdict with Gemini-powered root cause analysis back to GitHub.
+Keo learns how a service actually behaves in production (p95 and errors per endpoint). Agents compare a change against that contract before they ship. GitHub Actions can post the same verdict; it is not the product.
 
 ---
 
@@ -245,46 +245,20 @@ Generates a comprehensive, human-readable report combining:
 
 ## Getting Started
 
-### 1. Register Your Application
-1. Sign up on your deployed Keo dashboard.
-2. Register a new service for your project.
-3. Note your **Service ID** and **API Key**.
+### 1. Production fingerprint
+1. Sign up on the Keo dashboard and register a service.
+2. Install `@keo-platform/monitor-sdk` and `monitor.start()` plus `monitor.middleware()` so traffic is tagged per route.
+3. Production snapshots become a 14-day fingerprint: p95 and error rate per endpoint.
 
-### 2. Install the KEO SDK in Your Application
-Add the monitor SDK to your project:
+### 2. Cursor MCP (the product)
+From the repo: `npm --prefix mcp install`. Copy `.cursor/mcp.json.example` to `.cursor/mcp.json` with `KEO_API_URL`, `KEO_API_KEY`, and `KEO_SERVICE_ID`.
 
-```bash
-pnpm add @keo-platform/monitor-sdk
-```
+Tools:
+- `get_fingerprint` — the contract.
+- `would_this_regress` — pass `observed.routes` from `monitor.metrics.peek()`, or a `jobId`. Returns `ok | warn | regress | insufficient` plus `fileHint` and `retry`.
 
-Initialize the SDK at application startup:
-
-```ts
-import { Monitor } from "@keo-platform/monitor-sdk";
-
-const monitor = new Monitor({
-  apiKey: process.env.KEO_API_KEY,
-  serviceId: process.env.KEO_SERVICE_ID,
-});
-
-monitor.start();
-```
-
-When running inside the GitHub Actions sandbox, the SDK automatically reads `KEO_VERIFICATION_JOB_ID` from the environment and attaches it to every metric and log event.
-
-### 3. Add GitHub Actions Workflow
-Add `.github/workflows/pr-verification.yml` to your repository.
-
-Configure these **Repository Secrets**:
-- `KEO_API_URL` — Public URL of your deployed KEO backend.
-- `KEO_VERIFICATION_TOKEN` — Shared verification token configured in the KEO backend.
-
-Configure these **Repository Variables**:
-- `KEO_SERVICE_ID` — Target service ID for the sandboxed PR application.
-- `KEO_BASELINE_SERVICE_ID` — Service ID of your production environment (used for baseline comparison).
-- `KEO_PR_TEST_COMMAND` — (Optional) Traffic generation command to run against `http://127.0.0.1:3000` (defaults to health check endpoint).
-
-See [PR Verification Setup Guide](./docs/pr-verification.md) for full configuration options.
+### 3. Optional GitHub check
+Same engine can run in Actions and post a check. Secrets and workflow: [PR Verification Setup Guide](./docs/pr-verification.md). This is last mile for humans, not the homepage.
 
 ---
 

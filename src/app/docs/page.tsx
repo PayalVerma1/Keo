@@ -285,10 +285,10 @@ export default function DocsPage() {
 
             <main className="docs-main">
               <div className="card" style={{ marginBottom: "24px", padding: "24px" }}>
-                <div className="docs-chip">PR scoring</div>
-                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Score pull requests with Keo</h1>
+                <div className="docs-chip">Agent eval</div>
+                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Would this regress?</h1>
                 <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "680px" }}>
-                  Install <InlineCode>@keo-platform/monitor-sdk</InlineCode> in the app GitHub Actions runs in the sandbox. Keo compares that telemetry to a production baseline and posts PASS / WARN / FAIL plus a report.
+                  Keo is production memory for coding agents. The SDK learns p95 and errors per route. In Cursor, call <InlineCode>would_this_regress</InlineCode>. GitHub Actions is an optional last mile — never the product.
                 </p>
               </div>
 
@@ -328,9 +328,9 @@ export default function DocsPage() {
               <Section id="quickstart" title="Quick Start">
                 <div className="docs-grid">
                   {[
-                    { step: "1", title: "Register the app", desc: "Create a Keo account and add the application you want to score." },
-                    { step: "2", title: "Install the SDK", desc: "Instrument the app so sandbox traffic emits metrics tagged with the job ID." },
-                    { step: "3", title: "Wire GitHub Actions", desc: "Add the Keo workflow and secrets. Each PR gets a score and report." },
+                    { step: "1", title: "Fingerprint", desc: "Register the app and install the SDK so production traffic becomes a route-level contract." },
+                    { step: "2", title: "MCP in Cursor", desc: "Connect keo-mcp. Ask would_this_regress with observed route metrics or a job id." },
+                    { step: "3", title: "Optional GitHub check", desc: "Same engine can post on a PR. Humans see findings; agents get fileHint + retry." },
                   ].map((s) => (
                     <div key={s.step} className="docs-card">
                       <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(165,180,252,0.15)", color: "#a5b4fc", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "15px", marginBottom: "12px" }}>{s.step}</div>
@@ -339,6 +339,28 @@ export default function DocsPage() {
                     </div>
                   ))}
                 </div>
+              </Section>
+
+              <Section id="mcp" title="Cursor MCP">
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
+                  Copy <InlineCode>.cursor/mcp.json.example</InlineCode> into <InlineCode>.cursor/mcp.json</InlineCode> with your API key. Tools: <InlineCode>get_fingerprint</InlineCode> and <InlineCode>would_this_regress</InlineCode>.
+                </p>
+                <CodeBlock code={`{
+  "mcpServers": {
+    "keo": {
+      "command": "npx",
+      "args": ["tsx", "mcp/src/index.ts"],
+      "env": {
+        "KEO_API_URL": "http://localhost:3000",
+        "KEO_API_KEY": "YOUR_SERVICE_API_KEY",
+        "KEO_SERVICE_ID": "YOUR_SERVICE_ID"
+      }
+    }
+  }
+}`} />
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: "16px 0", lineHeight: 1.6 }}>
+                  From the repo root: <InlineCode>npm --prefix mcp install</InlineCode> then the agent can call the tools. Pass <InlineCode>observed.routes</InlineCode> from <InlineCode>monitor.metrics.peek()</InlineCode> after a local run.
+                </p>
               </Section>
 
               <Section id="install" title="Installation">
@@ -395,7 +417,9 @@ export default function DocsPage() {
                     ["GET", "/api/services", "JWT", "List all services owned by the user"],
                     ["POST", "/api/services", "JWT", "Create a new service"],
                     ["POST", "/api/services/:id/api-key", "JWT", "Generate an SDK API key for a service"],
-                    ["POST", "/api/metrics", "SDK key", "Ingest a metrics snapshot"],
+                    ["GET", "/api/agent/fingerprint", "SDK key / JWT", "Production route fingerprint (p95 / errors)"],
+                    ["POST", "/api/agent/would-this-regress", "SDK key / JWT", "Compare observed runtime or a job to the fingerprint"],
+                    ["POST", "/api/metrics", "SDK key", "Ingest a metrics snapshot (includes routes)"],
                     ["GET", "/api/logs/:serviceId", "JWT", "Get log entries for a service"],
                     ["POST", "/api/logs", "SDK key / JWT", "Ingest a log entry"],
                     ["GET", "/api/deployments/:serviceId", "JWT", "Get deployment history for a service"],
@@ -412,10 +436,10 @@ export default function DocsPage() {
 
               <Section id="dashboard" title="Dashboard Guide">
                 {[
-                  { title: "PR scores", desc: "Home lists recent pull request jobs with score, verdict, repository, and SHA." },
-                  { title: "Report", desc: "Each job has a comparison table against the production baseline, plus optional Gemini recommendations." },
-                  { title: "Applications", desc: "Register the app GitHub Actions will run in the sandbox. Copy the service ID and API key for the SDK." },
-                  { title: "Docs", desc: "SDK, workflow secrets, and how KEO_VERIFICATION_JOB_ID ties sandbox telemetry to a job." },
+                  { title: "Fingerprint", desc: "Home is the production contract: p95 and error rate per route." },
+                  { title: "GitHub checks", desc: "Optional. Same engine on a PR, with agent-readable findings." },
+                  { title: "Applications", desc: "Register the app. Copy the service ID and API key for the SDK and MCP." },
+                  { title: "Docs", desc: "MCP in Cursor first. GitHub workflow is last mile." },
                 ].map((item) => (
                   <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "var(--hover-fill)", borderRadius: "8px", padding: "16px" }}>
                     <div style={{ width: "6px", borderRadius: "4px", background: "linear-gradient(180deg,#8b5cf6,#3b82f6)", flexShrink: 0 }} />

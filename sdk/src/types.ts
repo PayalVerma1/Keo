@@ -12,6 +12,16 @@ export interface MetricPayload {
   latency: number;  
   errors: number;    
   serviceId: string;
+  routes?: RouteSnapshot[];
+}
+
+export interface RouteSnapshot {
+  method: string;
+  route: string;
+  count: number;
+  errors: number;
+  latencyP50: number;
+  latencyP95: number;
 }
 
 export interface DeploymentPayload {

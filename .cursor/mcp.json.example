@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "keo": {
+      "command": "npx",
+      "args": ["tsx", "mcp/src/index.ts"],
+      "env": {
+        "KEO_API_URL": "http://localhost:3000",
+        "KEO_API_KEY": "replace-with-service-api-key",
+        "KEO_SERVICE_ID": "replace-with-service-uuid"
+      }
+    }
+  }
+}
