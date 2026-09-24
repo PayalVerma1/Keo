@@ -49,6 +49,8 @@ services:
       NEXTAUTH_URL: http://127.0.0.1:3000
       JWT_SECRET: ${JWT_SECRET:-pr-sandbox-jwt}
       KEO_API_URL: ${KEO_API_URL:-}
+      KEO_BASE_URL: ${KEO_API_URL:-}
+      KEO_API_KEY: ${KEO_API_KEY:-}
       KEO_VERIFICATION_JOB_ID: ${KEO_VERIFICATION_JOB_ID:-}
       KEO_SERVICE_ID: ${KEO_SERVICE_ID:-}
     depends_on:

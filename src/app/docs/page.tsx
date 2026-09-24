@@ -21,7 +21,7 @@ const CODE_INIT = [
   "const monitor = new Monitor({",
   '  apiKey: "YOUR_SERVICE_API_KEY",   // Dashboard > Services > API Key',
   '  serviceId: "YOUR_SERVICE_ID",     // Dashboard > Services > copy ID',
-  '  baseUrl: "https://keo-five.vercel.app", // Your Keo server URL',
+  '  baseUrl: process.env.KEO_BASE_URL ?? process.env.KEO_API_URL, // Keo server, not this app',
   "  metricsInterval: 30000,           // Send metrics every 30 s (optional)",
   "});",
   "",
@@ -57,6 +57,15 @@ const CODE_SHUTDOWN = [
   "  process.exit(0);",
   "});",
 ].join("\n");
+
+const TOC = [
+  { id: "quickstart", label: "Quick start" },
+  { id: "fingerprint", label: "Production fingerprint" },
+  { id: "pr-scoring", label: "GitHub checks" },
+  { id: "mcp", label: "Cursor MCP" },
+  { id: "install", label: "SDK" },
+  { id: "api", label: "API" },
+];
 
 const CODE_FULL = [
   'require("dotenv/config");',
@@ -283,12 +292,24 @@ export default function DocsPage() {
               }
             `}</style>
 
+            <div className="docs-shell">
+            <nav className="docs-toc" aria-label="Docs sections">
+              {TOC.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  style={{ display: "block", fontSize: "13px", color: "var(--text-secondary)", padding: "6px 0", textDecoration: "none" }}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
             <main className="docs-main">
               <div className="card" style={{ marginBottom: "24px", padding: "24px" }}>
-                <div className="docs-chip">Agent eval</div>
-                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Would this regress?</h1>
-                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "680px" }}>
-                  Keo is production memory for coding agents. The SDK learns p95 and errors per route. In Cursor, call <InlineCode>would_this_regress</InlineCode>. GitHub Actions is an optional last mile — never the product.
+                <div className="docs-chip">Two flows, one engine</div>
+                <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Fingerprint, then PR score</h1>
+                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "720px" }}>
+                  The SDK is a sensor. <strong>Production fingerprint</strong> is how the live app behaves. <strong>GitHub checks</strong> run the PR in a sandbox, compare that telemetry to the fingerprint, and publish a 0–100 score. Without a fingerprint, scoring returns ERROR.
                 </p>
               </div>
 
@@ -300,37 +321,37 @@ export default function DocsPage() {
                     <span className="card-title">Applications</span>
                   </div>
                   <div className="stat-value">{loading ? "…" : applicationCount}</div>
-                  <div className="stat-trend trend-up">Registered for scoring</div>
+                  <div className="stat-trend trend-up">Registered</div>
                 </div>
                 <div className="card">
                   <div className="card-header">
-                    <span className="card-title">SDK</span>
+                    <span className="card-title">Fingerprint</span>
                   </div>
-                  <div className="stat-value">Node</div>
-                  <div className="stat-trend trend-up">Sandbox telemetry</div>
+                  <div className="stat-value">14d</div>
+                  <div className="stat-trend trend-up">Prod snapshots</div>
                 </div>
                 <div className="card">
                   <div className="card-header">
-                    <span className="card-title">Verdicts</span>
+                    <span className="card-title">Score</span>
                   </div>
-                  <div className="stat-value">3</div>
-                  <div className="stat-trend">PASS, WARN, FAIL</div>
+                  <div className="stat-value">0–100</div>
+                  <div className="stat-trend">PASS 100 / WARN 70 / FAIL 0</div>
                 </div>
                 <div className="card">
                   <div className="card-header">
-                    <span className="card-title">Baseline</span>
+                    <span className="card-title">Check</span>
                   </div>
-                  <div className="stat-value">Prod</div>
-                  <div className="stat-trend">Compared per PR</div>
+                  <div className="stat-value">KEO</div>
+                  <div className="stat-trend">merge verification</div>
                 </div>
               </div>
 
-              <Section id="quickstart" title="Quick Start">
+              <Section id="quickstart" title="Quick start">
                 <div className="docs-grid">
                   {[
-                    { step: "1", title: "Fingerprint", desc: "Register the app and install the SDK so production traffic becomes a route-level contract." },
-                    { step: "2", title: "MCP in Cursor", desc: "Connect keo-mcp. Ask would_this_regress with observed route metrics or a job id." },
-                    { step: "3", title: "Optional GitHub check", desc: "Same engine can post on a PR. Humans see findings; agents get fileHint + retry." },
+                    { step: "1", title: "Build the fingerprint", desc: "Register an application, install the SDK in production with start() plus middleware(). Open Fingerprint until samples and routes appear." },
+                    { step: "2", title: "Copy the PR workflow", desc: "Put pr-verification.yml and docker-compose.pr-sandbox.yml in the app repo. Set secrets. Keep Keo workers running." },
+                    { step: "3", title: "Read GitHub checks", desc: "Each PR shows on /prs, as a PR comment, and as KEO merge verification. Same engine as would_this_regress." },
                   ].map((s) => (
                     <div key={s.step} className="docs-card">
                       <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(165,180,252,0.15)", color: "#a5b4fc", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "15px", marginBottom: "12px" }}>{s.step}</div>
@@ -341,9 +362,75 @@ export default function DocsPage() {
                 </div>
               </Section>
 
+              <Section id="fingerprint" title="Production fingerprint">
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
+                  A fingerprint is the baseline for one application: how production actually runs. It is not a test suite. Dashboard home (<InlineCode>/</InlineCode>) loads <InlineCode>GET /api/agent/fingerprint</InlineCode>.
+                </p>
+                <ol style={{ margin: "0 0 20px 18px", padding: 0, fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.8 }}>
+                  <li>Create an application. Generate an SDK API key.</li>
+                  <li>In production, initialize the SDK with <InlineCode>apiKey</InlineCode>, <InlineCode>serviceId</InlineCode>, and <InlineCode>baseUrl</InlineCode> pointing at the <strong>Keo server</strong> (or <InlineCode>KEO_BASE_URL</InlineCode> / <InlineCode>KEO_API_URL</InlineCode>).</li>
+                  <li>Call <InlineCode>monitor.start()</InlineCode> (process metrics) and <InlineCode>monitor.middleware()</InlineCode> (p95 and errors per route).</li>
+                  <li>SDK posts <InlineCode>/api/metrics</InlineCode>. Rows have no job id. Redis workers must be running.</li>
+                  <li>Fingerprint = last 14 days, up to 500 of those rows. Process = averages. Routes = merged p50/p95/error rate. Numeric path segments become <InlineCode>:id</InlineCode>.</li>
+                </ol>
+                <Table
+                  headers={["Symptom", "Meaning"]}
+                  rows={[
+                    ["Samples 0", "SDK not reaching Keo, wrong URL/key, or workers not running"],
+                    ["Routes 0, samples > 0", "start() without middleware() — process-only baseline"],
+                    ["PR ERROR: insufficient fingerprint", "No production traffic before the PR"],
+                  ]}
+                />
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Sandbox metrics use <InlineCode>KEO_VERIFICATION_JOB_ID</InlineCode> and are excluded, so a PR cannot rewrite the baseline.
+                </p>
+              </Section>
+
+              <Section id="pr-scoring" title="GitHub checks">
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
+                  Copy <InlineCode>.github/workflows/pr-verification.yml</InlineCode> and <InlineCode>docker-compose.pr-sandbox.yml</InlineCode> into the <strong>app repo</strong>. Keo workers must be running: <InlineCode>complete</InlineCode> only queues Redis; without a worker the check times out as ERROR. Full guide: repo <InlineCode>docs/pr-verification.md</InlineCode>.
+                </p>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
+                  Job states: <InlineCode>QUEUED</InlineCode> → traffic window → <InlineCode>COLLECTING</InlineCode> on complete → <InlineCode>PROCESSING</InlineCode> → terminal verdict.
+                </p>
+                <ol style={{ margin: "0 0 20px 18px", padding: 0, fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.8 }}>
+                  <li>PR opened/updated (forks skipped — no secrets).</li>
+                  <li><InlineCode>POST /api/verifications</InlineCode> with <InlineCode>x-keo-verification-token</InlineCode> → <InlineCode>jobId</InlineCode>.</li>
+                  <li>Sandbox boots with <InlineCode>KEO_API_URL</InlineCode>, <InlineCode>KEO_API_KEY</InlineCode>, <InlineCode>KEO_SERVICE_ID</InlineCode>, <InlineCode>KEO_VERIFICATION_JOB_ID</InlineCode>.</li>
+                  <li>Traffic via <InlineCode>KEO_PR_TEST_COMMAND</InlineCode> or <InlineCode>GET /api/health</InlineCode>. SDK metrics attach only to that job.</li>
+                  <li><InlineCode>POST /api/verifications/:jobId/complete</InlineCode>. Worker compares those metrics to the fingerprint of <InlineCode>KEO_BASELINE_SERVICE_ID</InlineCode> from prod rows before the job.</li>
+                  <li>Per-metric PASS / WARN / FAIL. Score = average (100 / 70 / 0). Worst metric is the job verdict. New PR routes with no prod twin are skipped.</li>
+                  <li>Dashboard <InlineCode>/prs</InlineCode>, PR comment, and check <InlineCode>KEO merge verification</InlineCode>. Workflow fails on FAILED or ERROR.</li>
+                </ol>
+                <Table
+                  headers={["Job verdict", "Score", "GitHub check"]}
+                  rows={[
+                    ["PASSED", "Every compared row within limit", "success"],
+                    ["WARNING", "A row above 75% of its limit", "neutral"],
+                    ["FAILED", "A row above 100% of its limit", "failure — require the check to block merge"],
+                    ["ERROR", "No PR telemetry, no fingerprint, or timeout", "failure"],
+                  ]}
+                />
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
+                  Default limits: +20% CPU/memory, +15% latency and route p95, +10% errors. Gemini may add fileHint/retry; it does not change the score.
+                </p>
+                <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "10px", color: "var(--text-secondary)" }}>Secrets and variables (app repo)</h3>
+                <Table
+                  headers={["Name", "Type", "Purpose"]}
+                  rows={[
+                    ["KEO_API_URL", "Secret", "Public Keo API URL, no trailing slash"],
+                    ["KEO_API_KEY", "Secret", "SDK key so the sandbox can POST /api/metrics"],
+                    ["KEO_VERIFICATION_TOKEN", "Secret", "Must match KEO_VERIFICATION_TOKEN on the Keo server"],
+                    ["KEO_SERVICE_ID", "Variable", "Application the sandbox SDK reports as"],
+                    ["KEO_BASELINE_SERVICE_ID", "Variable", "Application whose production fingerprint is the baseline (often the same ID)"],
+                    ["KEO_PR_TEST_COMMAND", "Variable", "Optional traffic at http://127.0.0.1:3000; otherwise only /api/health"],
+                  ]}
+                />
+              </Section>
+
               <Section id="mcp" title="Cursor MCP">
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
-                  Copy <InlineCode>.cursor/mcp.json.example</InlineCode> into <InlineCode>.cursor/mcp.json</InlineCode> with your API key. Tools: <InlineCode>get_fingerprint</InlineCode> and <InlineCode>would_this_regress</InlineCode>.
+                  Copy <InlineCode>.cursor/mcp.json.example</InlineCode> into <InlineCode>.cursor/mcp.json</InlineCode>. Tools: <InlineCode>get_fingerprint</InlineCode> (the contract) and <InlineCode>would_this_regress</InlineCode> (same comparison as a GitHub check; pass <InlineCode>jobId</InlineCode> or local <InlineCode>observed.routes</InlineCode>).
                 </p>
                 <CodeBlock code={`{
   "mcpServers": {
@@ -379,7 +466,7 @@ export default function DocsPage() {
                   rows={[
                     ["apiKey", "string", "required", "Service-scoped API key from Dashboard → Profile → API Keys"],
                     ["serviceId", "string", "required", "UUID of your service (Dashboard → Services)"],
-                    ["baseUrl", "string", "https://keo-five.vercel.app", "Base URL of Keo server"],
+                    ["baseUrl", "string", "KEO_BASE_URL or KEO_API_URL or localhost:3000", "Keo server URL, not your app URL"],
                     ["metricsInterval", "number", "30000", "How often (ms) to auto-send CPU/memory metrics"],
                   ]}
                 />
@@ -391,7 +478,7 @@ export default function DocsPage() {
 
                 <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "10px", marginTop: "28px", color: "var(--text-secondary)" }}>Express Middleware</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
-                  The middleware automatically tracks request count, latency, and 5xx error rate.
+                  The middleware records latency and 5xx per route so the fingerprint has p95, not only process averages.
                 </p>
                 <CodeBlock code={CODE_EXPRESS} />
 
@@ -436,10 +523,10 @@ export default function DocsPage() {
 
               <Section id="dashboard" title="Dashboard Guide">
                 {[
-                  { title: "Fingerprint", desc: "Home is the production contract: p95 and error rate per route." },
-                  { title: "GitHub checks", desc: "Optional. Same engine on a PR, with agent-readable findings." },
-                  { title: "Applications", desc: "Register the app. Copy the service ID and API key for the SDK and MCP." },
-                  { title: "Docs", desc: "MCP in Cursor first. GitHub workflow is last mile." },
+                  { title: "Fingerprint", desc: "Home. 14-day production contract: process averages plus per-route p95 and error rate." },
+                  { title: "GitHub checks", desc: "PR jobs: 0–100 score, verdict, comparison table, findings. This is the score UI." },
+                  { title: "Applications", desc: "Register the app. Copy service ID and API key for prod SDK and GitHub secrets." },
+                  { title: "Docs", desc: "Fingerprint flow first, then GitHub check flow. SDK is the sensor." },
                 ].map((item) => (
                   <div key={item.title} style={{ display: "flex", gap: "16px", marginBottom: "16px", background: "var(--hover-fill)", borderRadius: "8px", padding: "16px" }}>
                     <div style={{ width: "6px", borderRadius: "4px", background: "linear-gradient(180deg,#8b5cf6,#3b82f6)", flexShrink: 0 }} />
@@ -453,15 +540,16 @@ export default function DocsPage() {
 
               <Section id="integration" title="Full Integration Example">
                 <div style={{ background: "rgba(46,200,133,0.06)", border: "1px solid rgba(46,200,133,0.2)", borderRadius: "8px", padding: "14px 18px", marginBottom: "20px", fontSize: "13px", color: "var(--accent-green)", lineHeight: 1.6 }}>
-                  ✅ Copy the snippet below into your app entry point. Replace the environment variables and you&apos;re done.
+                  This is production fingerprint setup. GitHub scoring still needs the workflow and workers — see GitHub checks above.
                 </div>
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
                   Required environment variables:
                 </p>
-                <CodeBlock code={`KEO_API_KEY=<your-service-api-key>\nKEO_SERVICE_ID=<your-service-uuid>\nKEO_BASE_URL=https://keo-five.vercel.app\nGIT_SHA=v1.2.3`} language="bash" />
+                <CodeBlock code={`KEO_API_KEY=<your-service-api-key>\nKEO_SERVICE_ID=<your-service-uuid>\nKEO_BASE_URL=<keo-server-url>`} language="bash" />
                 <CodeBlock code={CODE_FULL} />
               </Section>
             </main>
+            </div>
           </div>
         </div>
       </main>

@@ -1,3 +1,4 @@
+import "../config/prefer-ipv4";
 import { loadEnvConfig } from "@next/env";
 import { createServer } from "http";
 

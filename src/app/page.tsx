@@ -87,7 +87,7 @@ export default function FingerprintHome() {
             <div className="page-title-wrap">
               <h1 className="page-title">Production fingerprint</h1>
               <p className="page-subtitle">
-                The contract agents check before they ship. p95 and errors per route, from live traffic — not a GitHub Action.
+                The contract agents check before they ship. p95 and errors per route, from live traffic not a GitHub Action.
               </p>
             </div>
             {services.length > 0 && (

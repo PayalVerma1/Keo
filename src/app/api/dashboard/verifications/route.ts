@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { listVerificationJobsForOwner } from "@/lib/modules/verifications/verification.service";
 import { parseComparisons, scoreFromComparisons } from "@/lib/modules/verifications/score";
+import { databaseErrorMessage } from "@/lib/config/prisma";
 
 export async function GET(req: NextRequest) {
   const auth = await verifyAuth(req);
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Unable to load PR scores" },
+      { message: databaseErrorMessage(error) },
       { status: 500 }
     );
   }

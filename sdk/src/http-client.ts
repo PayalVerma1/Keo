@@ -9,7 +9,12 @@ export class HttpClient {
 
   constructor(config: MonitorConfig) {
     // Remove trailing slash from base URL so we don't end up with double slashes
-    this.baseUrl = (config.baseUrl ?? "http://localhost:3000").replace(/\/$/, "");
+    this.baseUrl = (
+      config.baseUrl ??
+      process.env.KEO_BASE_URL ??
+      process.env.KEO_API_URL ??
+      "http://localhost:3000"
+    ).replace(/\/$/, "");
     this.apiKey = config.apiKey;
     this.silent = config.silent ?? false;
   }

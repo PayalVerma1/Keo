@@ -246,19 +246,19 @@ Generates a comprehensive, human-readable report combining:
 ## Getting Started
 
 ### 1. Production fingerprint
-1. Sign up on the Keo dashboard and register a service.
-2. Install `@keo-platform/monitor-sdk` and `monitor.start()` plus `monitor.middleware()` so traffic is tagged per route.
-3. Production snapshots become a 14-day fingerprint: p95 and error rate per endpoint.
+1. Sign up, create an application, generate an SDK API key.
+2. In **production**, install `@keo-platform/monitor-sdk`, call `monitor.start()` and `monitor.middleware()`. Point `baseUrl` / `KEO_BASE_URL` / `KEO_API_URL` at the **Keo server**.
+3. Run Keo workers (`npm run dev:workers`). After traffic, **Fingerprint** (`/`) shows a 14-day contract (process averages + per-route p95 / error rate). Sandbox metrics with `KEO_VERIFICATION_JOB_ID` are excluded.
 
-### 2. Cursor MCP (the product)
-From the repo: `npm --prefix mcp install`. Copy `.cursor/mcp.json.example` to `.cursor/mcp.json` with `KEO_API_URL`, `KEO_API_KEY`, and `KEO_SERVICE_ID`.
+### 2. GitHub checks
+Copy `.github/workflows/pr-verification.yml` and `docker-compose.pr-sandbox.yml` into the **application** repo. Secrets: `KEO_API_URL`, `KEO_API_KEY`, `KEO_VERIFICATION_TOKEN`. Variables: `KEO_SERVICE_ID`, `KEO_BASELINE_SERVICE_ID`, optional `KEO_PR_TEST_COMMAND`.
 
-Tools:
-- `get_fingerprint` — the contract.
-- `would_this_regress` — pass `observed.routes` from `monitor.metrics.peek()`, or a `jobId`. Returns `ok | warn | regress | insufficient` plus `fileHint` and `retry`.
+Each PR: create job → sandbox with SDK tagged by `jobId` → traffic → complete → worker compares to the fingerprint → score on `/prs`, PR comment, check `KEO merge verification`.
 
-### 3. Optional GitHub check
-Same engine can run in Actions and post a check. Secrets and workflow: [PR Verification Setup Guide](./docs/pr-verification.md). This is last mile for humans, not the homepage.
+See [docs/pr-verification.md](./docs/pr-verification.md).
+
+### 3. Cursor (same engine)
+`npm --prefix mcp install`. Copy `.cursor/mcp.json.example`. `get_fingerprint` and `would_this_regress` (`jobId` or local observed routes).
 
 ---
 

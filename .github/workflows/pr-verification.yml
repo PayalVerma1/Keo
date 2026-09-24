@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 30
     env:
       KEO_API_URL: ${{ secrets.KEO_API_URL }}
+      KEO_API_KEY: ${{ secrets.KEO_API_KEY }}
       KEO_VERIFICATION_TOKEN: ${{ secrets.KEO_VERIFICATION_TOKEN }}
       KEO_SERVICE_ID: ${{ vars.KEO_SERVICE_ID }}
       KEO_BASELINE_SERVICE_ID: ${{ vars.KEO_BASELINE_SERVICE_ID }}
@@ -29,6 +30,7 @@ jobs:
       - name: Validate KEO configuration
         run: |
           test -n "$KEO_API_URL"
+          test -n "$KEO_API_KEY"
           test -n "$KEO_VERIFICATION_TOKEN"
           test -n "$KEO_SERVICE_ID"
           test -n "$KEO_BASELINE_SERVICE_ID"
