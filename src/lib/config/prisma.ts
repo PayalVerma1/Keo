@@ -1,3 +1,4 @@
+import "./prefer-ipv4";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma";
@@ -13,7 +14,7 @@ function createPrismaClient() {
     // Keep cloud-pooler connections short-lived to avoid reusing stale sockets.
     max: 5,
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 5_000,
+    connectionTimeoutMillis: 15_000,
     maxLifetimeSeconds: 60,
     keepAlive: true,
     keepAliveInitialDelayMillis: 10_000,
@@ -35,5 +36,16 @@ function createPrismaClient() {
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+export function databaseErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return "Database request failed";
+  const extra = error as Error & { code?: string; errors?: Array<{ message?: string; code?: string }> };
+  const nested = extra.errors
+    ?.map((entry) => entry.message || entry.code)
+    .filter(Boolean)
+    .join("; ");
+  const text = [extra.message, extra.code, nested].filter(Boolean).join(" — ");
+  return text || "Database connection failed (check DATABASE_URL / network)";
+}
 
 export * from "../generated/prisma";

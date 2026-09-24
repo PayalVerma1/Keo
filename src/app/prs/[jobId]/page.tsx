@@ -21,7 +21,19 @@ type PrReport = {
   service: { id: string; name: string };
   summary: string | null;
   comparisons: MetricComparison[];
-  recommendations: { rootCause?: string; recommendation?: string } | null;
+  recommendations: {
+    rootCause?: string;
+    recommendation?: string;
+    findings?: Array<{
+      id: string;
+      route: string | null;
+      metric: string;
+      fileHint: string | null;
+      retry: string;
+      verdict: string;
+      deltaPercent: number;
+    }>;
+  } | null;
   createdAt: string;
   completedAt: string | null;
 };
@@ -77,16 +89,16 @@ export default function PrReportPage() {
               <button
                 type="button"
                 className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-md border-0 bg-transparent px-0 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/prs")}
               >
                 <ArrowLeft size={16} aria-hidden="true" />
-                All PR scores
+                All GitHub checks
               </button>
               <h1 className="page-title">
                 {loading ? "PR report" : report ? `${report.repository} #${report.pullRequestNumber}` : "PR report"}
               </h1>
               <p className="page-subtitle">
-                Baseline comparison for this pull request. Gemini may explain the evidence; it does not decide the verdict.
+                Baseline comparison for this pull request. Findings are structured for an agent to retry; Gemini does not decide the verdict.
               </p>
             </div>
             {report && (
@@ -179,8 +191,26 @@ export default function PrReportPage() {
               </div>
 
               <div className="card">
-                <div className="card-title mb-2">Recommendations</div>
-                {report.recommendations?.rootCause || report.recommendations?.recommendation ? (
+                <div className="card-title mb-2">Agent findings</div>
+                {report.recommendations?.findings?.length ? (
+                  <div className="space-y-4 text-sm leading-6 text-[var(--text-secondary)]">
+                    {report.recommendations.findings.map((finding) => (
+                      <div key={finding.id} className="border-b border-[var(--border-color)] pb-3 last:border-0 last:pb-0">
+                        <p className="font-semibold text-[var(--text-primary)]">
+                          {finding.metric}{" "}
+                          <span className="font-normal text-[var(--text-secondary)]">
+                            {finding.deltaPercent > 0 ? "+" : ""}
+                            {finding.deltaPercent}%
+                          </span>
+                        </p>
+                        <p className="mt-1">{finding.retry}</p>
+                        {finding.fileHint && (
+                          <p className="mt-1 font-mono text-xs">{finding.fileHint}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : report.recommendations?.rootCause || report.recommendations?.recommendation ? (
                   <div className="max-w-prose space-y-3 text-sm leading-6 text-[var(--text-secondary)]">
                     {report.recommendations.rootCause && (
                       <p>
@@ -197,7 +227,7 @@ export default function PrReportPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-[var(--text-secondary)]">
-                    No Gemini explanation for this run. The verdict still comes from baseline thresholds.
+                    No structured findings for this run. The verdict still comes from the fingerprint thresholds.
                   </p>
                 )}
               </div>

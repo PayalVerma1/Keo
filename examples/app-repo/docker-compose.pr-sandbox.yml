@@ -1,17 +1,18 @@
-# Isolated PR sandbox: the pull-request application plus test Postgres and Redis.
-# GitHub Actions builds `keo-pr:$KEO_SHA` from the sandbox Docker target, then
-# starts this stack, waits for the health check, and runs traffic against the app.
+# Copy this file next to YOUR app Dockerfile (sandbox target).
+# The image is YOUR product with the Keo SDK, not the Keo dashboard.
+# Adapt Postgres/Redis/migrate to match how that app boots.
+
 name: keo-pr-sandbox
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: keo
-      POSTGRES_USER: keo
-      POSTGRES_PASSWORD: keo
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keo -d keo"]
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -20,7 +21,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -29,33 +29,17 @@ services:
     networks:
       - sandbox
 
-  migrate:
-    image: keo-pr:${KEO_SHA}
-    command: pnpm exec prisma migrate deploy
-    environment:
-      DATABASE_URL: postgresql://keo:keo@postgres:5432/keo?schema=public
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - sandbox
-
   app:
     image: keo-pr:${KEO_SHA}
     environment:
-      DATABASE_URL: postgresql://keo:keo@postgres:5432/keo?schema=public
-      REDIS_CLIENT: redis://redis:6379
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-pr-sandbox-secret}
-      NEXTAUTH_URL: http://127.0.0.1:3000
-      JWT_SECRET: ${JWT_SECRET:-pr-sandbox-jwt}
       KEO_API_URL: ${KEO_API_URL:-}
       KEO_BASE_URL: ${KEO_API_URL:-}
       KEO_API_KEY: ${KEO_API_KEY:-}
       KEO_VERIFICATION_JOB_ID: ${KEO_VERIFICATION_JOB_ID:-}
       KEO_SERVICE_ID: ${KEO_SERVICE_ID:-}
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
     ports:

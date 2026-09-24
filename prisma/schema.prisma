@@ -119,6 +119,8 @@ model Metrics {
   throughput        Float
   latency           Float
   errors            Float
+  /// Per-interval route snapshots: method, route, count, errors, latencyP50, latencyP95
+  routes            Json?
   serviceId         String
   createdAt         DateTime @default(now())
   verificationJobId String?

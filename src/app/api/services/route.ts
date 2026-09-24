@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/middleware/auth";
 import * as serviceService from "@/lib/modules/services/service.service";
+import { databaseErrorMessage } from "@/lib/config/prisma";
 
 export async function POST(req: NextRequest) {
   const auth = await verifyAuth(req);
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: databaseErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -29,6 +30,6 @@ export async function GET(req: NextRequest) {
     const services = await serviceService.getServices(auth.payload.id);
     return NextResponse.json(services);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: databaseErrorMessage(error) }, { status: 500 });
   }
 }

@@ -3,7 +3,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { BookOpen, GitPullRequest, Layers, LogOut } from "lucide-react";
+import { Activity, BookOpen, GitPullRequest, Layers, LogOut } from "lucide-react";
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -18,7 +18,8 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
   const currentPath = activePath ?? pathname ?? "/";
 
   const navItems = [
-    { label: "PR scores", icon: <GitPullRequest size={18} />, href: "/" },
+    { label: "Fingerprint", icon: <Activity size={18} />, href: "/" },
+    { label: "GitHub checks", icon: <GitPullRequest size={18} />, href: "/prs" },
     { label: "Applications", icon: <Layers size={18} />, href: "/services" },
     { label: "Docs", icon: <BookOpen size={18} />, href: "/docs" },
   ];
@@ -31,8 +32,8 @@ export function Sidebar({ onLogout, userName = "", activePath, socketState }: Si
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
-              ? currentPath === "/" || currentPath.startsWith("/prs")
-              : currentPath === item.href || currentPath.startsWith(item.href);
+              ? currentPath === "/"
+              : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
 
           return (
             <a

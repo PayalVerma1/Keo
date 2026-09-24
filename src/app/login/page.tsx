@@ -132,7 +132,7 @@ function LoginPageContent() {
         </h1>
         <p className="login-subtitle">
           {mode === "login"
-            ? "Sign in to review PR scores and verification reports"
+            ? "Sign in to review production fingerprints and agent findings"
             : "Create an account to start scoring pull requests"}
         </p>
 

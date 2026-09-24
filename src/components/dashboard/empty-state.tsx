@@ -16,9 +16,9 @@ export function EmptyPrScoresState() {
   return (
     <div className="card mb-6 flex flex-col items-center px-5 py-10 text-center">
       <GitPullRequest size={48} className="mb-4 text-[var(--text-muted)]" aria-hidden="true" />
-      <p className="mb-2 text-base font-semibold">No pull requests scored yet</p>
+      <p className="mb-2 text-base font-semibold">No GitHub checks yet</p>
       <p className="mx-auto max-w-[440px] text-[13px] text-[var(--text-secondary)]">
-        Register an application, install the SDK, and open a PR with the Keo workflow. Scores show up here.
+        The product lives in Cursor via MCP. GitHub is optional — same fingerprint engine, posted as a check.
       </p>
       <a
         href="/docs"

@@ -12,11 +12,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ jobI
   if (!job) return NextResponse.json({ message: "PR report not found" }, { status: 404 });
 
   const comparisons = parseComparisons(job.report?.comparisons);
+  const raw = job.report?.recommendations;
   const recommendations =
-    job.report?.recommendations &&
-    typeof job.report.recommendations === "object" &&
-    !Array.isArray(job.report.recommendations)
-      ? (job.report.recommendations as { rootCause?: string; recommendation?: string })
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as {
+          rootCause?: string;
+          recommendation?: string;
+          findings?: unknown;
+        })
       : null;
 
   return NextResponse.json({
