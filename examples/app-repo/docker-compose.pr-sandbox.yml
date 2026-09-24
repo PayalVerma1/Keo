@@ -1,0 +1,62 @@
+# Copy this file next to YOUR app Dockerfile (sandbox target).
+# The image is YOUR product with the Keo SDK, not the Keo dashboard.
+# Adapt Postgres/Redis/migrate to match how that app boots.
+
+name: keo-pr-sandbox
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - sandbox
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - sandbox
+
+  app:
+    image: keo-pr:${KEO_SHA}
+    environment:
+      KEO_API_URL: ${KEO_API_URL:-}
+      KEO_BASE_URL: ${KEO_API_URL:-}
+      KEO_API_KEY: ${KEO_API_KEY:-}
+      KEO_VERIFICATION_JOB_ID: ${KEO_VERIFICATION_JOB_ID:-}
+      KEO_SERVICE_ID: ${KEO_SERVICE_ID:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 20s
+    networks:
+      - sandbox
+
+networks:
+  sandbox:
+    driver: bridge

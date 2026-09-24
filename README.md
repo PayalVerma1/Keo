@@ -250,12 +250,10 @@ Generates a comprehensive, human-readable report combining:
 2. In **production**, install `@keo-platform/monitor-sdk`, call `monitor.start()` and `monitor.middleware()`. Point `baseUrl` / `KEO_BASE_URL` / `KEO_API_URL` at the **Keo server**.
 3. Run Keo workers (`npm run dev:workers`). After traffic, **Fingerprint** (`/`) shows a 14-day contract (process averages + per-route p95 / error rate). Sandbox metrics with `KEO_VERIFICATION_JOB_ID` are excluded.
 
-### 2. GitHub checks
-Copy `.github/workflows/pr-verification.yml` and `docker-compose.pr-sandbox.yml` into the **application** repo. Secrets: `KEO_API_URL`, `KEO_API_KEY`, `KEO_VERIFICATION_TOKEN`. Variables: `KEO_SERVICE_ID`, `KEO_BASELINE_SERVICE_ID`, optional `KEO_PR_TEST_COMMAND`.
+### 2. GitHub checks (on the customer's repo)
+Keo does not score PRs to the Keo repository. Developers copy [`examples/app-repo`](./examples/app-repo) into **their** product repo and set secrets pointing at **your** deployed Keo (`KEO_API_URL`). Their PRs get the `KEO merge verification` check. You see the same jobs in the Keo dashboard.
 
-Each PR: create job → sandbox with SDK tagged by `jobId` → traffic → complete → worker compares to the fingerprint → score on `/prs`, PR comment, check `KEO merge verification`.
-
-See [docs/pr-verification.md](./docs/pr-verification.md).
+See [examples/app-repo/README.md](./examples/app-repo/README.md) and [docs/pr-verification.md](./docs/pr-verification.md).
 
 ### 3. Cursor (same engine)
 `npm --prefix mcp install`. Copy `.cursor/mcp.json.example`. `get_fingerprint` and `would_this_regress` (`jobId` or local observed routes).

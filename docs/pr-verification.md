@@ -50,7 +50,7 @@ Sandbox / PR metrics use `KEO_VERIFICATION_JOB_ID` and are **excluded** from the
 
 ## GitHub checks (PR scoring)
 
-Copy `.github/workflows/pr-verification.yml` and `docker-compose.pr-sandbox.yml` into the **application repo** (the one with the SDK and a Docker `sandbox` target). The Keo repo’s copies are the reference.
+Copy `examples/app-repo/.github/workflows/keo-pr-score.yml` and `examples/app-repo/docker-compose.pr-sandbox.yml` into the **application repo** (the product with the SDK). Do not add that workflow to Keo itself — Keo is only the API.
 
 Keo **workers must be running** on the Keo server. `complete` only enqueues a Redis job; without a worker the check waits until timeout (`ERROR`).
 

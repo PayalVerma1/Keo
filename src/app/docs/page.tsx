@@ -309,7 +309,7 @@ export default function DocsPage() {
                 <div className="docs-chip">Two flows, one engine</div>
                 <h1 style={{ fontSize: "34px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.15 }}>Fingerprint, then PR score</h1>
                 <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "720px" }}>
-                  The SDK is a sensor. <strong>Production fingerprint</strong> is how the live app behaves. <strong>GitHub checks</strong> run the PR in a sandbox, compare that telemetry to the fingerprint, and publish a 0–100 score. Without a fingerprint, scoring returns ERROR.
+                  Keo is the scoring service, not the repo you PR. Developers put the SDK in <strong>their</strong> production app, then copy <InlineCode>examples/app-repo/.github/workflows/keo-pr-score.yml</InlineCode> into <strong>their</strong> GitHub repo. Their PRs call your Keo API. This Keo repository does not score its own pull requests.
                 </p>
               </div>
 
@@ -350,7 +350,7 @@ export default function DocsPage() {
                 <div className="docs-grid">
                   {[
                     { step: "1", title: "Build the fingerprint", desc: "Register an application, install the SDK in production with start() plus middleware(). Open Fingerprint until samples and routes appear." },
-                    { step: "2", title: "Copy the PR workflow", desc: "Put pr-verification.yml and docker-compose.pr-sandbox.yml in the app repo. Set secrets. Keep Keo workers running." },
+                    { step: "2", title: "Add the workflow to THEIR repo", desc: "Copy examples/app-repo/.github/workflows/keo-pr-score.yml into the product GitHub repo, not into Keo. Point secrets at your deployed Keo." },
                     { step: "3", title: "Read GitHub checks", desc: "Each PR shows on /prs, as a PR comment, and as KEO merge verification. Same engine as would_this_regress." },
                   ].map((s) => (
                     <div key={s.step} className="docs-card">
@@ -388,7 +388,7 @@ export default function DocsPage() {
 
               <Section id="pr-scoring" title="GitHub checks">
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
-                  Copy <InlineCode>.github/workflows/pr-verification.yml</InlineCode> and <InlineCode>docker-compose.pr-sandbox.yml</InlineCode> into the <strong>app repo</strong>. Keo workers must be running: <InlineCode>complete</InlineCode> only queues Redis; without a worker the check times out as ERROR. Full guide: repo <InlineCode>docs/pr-verification.md</InlineCode>.
+                  Keo does not run this check on Keo PRs. Copy <InlineCode>examples/app-repo/.github/workflows/keo-pr-score.yml</InlineCode> and <InlineCode>examples/app-repo/docker-compose.pr-sandbox.yml</InlineCode> into the <strong>product repo you monitor</strong>. That workflow POSTs to <InlineCode>KEO_API_URL</InlineCode> (your Keo deploy). Keep Keo workers running. Guide: <InlineCode>examples/app-repo/README.md</InlineCode>.
                 </p>
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
                   Job states: <InlineCode>QUEUED</InlineCode> → traffic window → <InlineCode>COLLECTING</InlineCode> on complete → <InlineCode>PROCESSING</InlineCode> → terminal verdict.
